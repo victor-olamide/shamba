@@ -32,7 +32,18 @@ contract Shamba is Ownable, ReentrancyGuard {
     event CropHarvested(address indexed farmer, uint8 plotIdx, uint8 cropType, uint256 score);
     event FriendVisited(address indexed visitor, address indexed host);
 
-    constructor(address _usdm) Ownable(msg.sender) {
-        usdm = IERC20(_usdm);
+    constructor(address _usdm) Ownable(msg.sender) { usdm = IERC20(_usdm); }
+
+    /// @notice Initialize your farm (free, once per address).
+    function createFarm(address referrer) external {
+        require(!farms[msg.sender].initialized, "Farm exists");
+        farms[msg.sender].initialized = true;
+        farms[msg.sender].lastVisit = block.timestamp;
+        farmers.push(msg.sender);
+        if (referrer != address(0) && referrer != msg.sender && farms[referrer].initialized) {
+            referredBy[msg.sender] = referrer;
+            referralCount[referrer]++;
+        }
+        emit FarmCreated(msg.sender);
     }
 }
