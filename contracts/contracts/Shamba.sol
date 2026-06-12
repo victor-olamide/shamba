@@ -6,7 +6,8 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @notice Shamba — on-chain idle farming game on Celo. Plant, water, harvest.
-/// Free to play; optional USDM to buy premium seeds (GoldenWheat).
+/// Free to play; optional USDM to buy premium seeds.
+/// Swahili: "shamba" = farm/garden.
 contract Shamba is Ownable, ReentrancyGuard {
     IERC20 public immutable usdm;
 
@@ -64,8 +65,7 @@ contract Shamba is Ownable, ReentrancyGuard {
         Plot storage plot = farms[msg.sender].plots[plotIdx];
         require(plot.state == CropState.PLANTED, "Not planted");
         require(!plot.watered, "Already watered");
-        plot.watered = true;
-        emit CropWatered(msg.sender, plotIdx);
+        plot.watered = true; emit CropWatered(msg.sender, plotIdx);
     }
 
     function harvest(uint8 plotIdx) external nonReentrant {
@@ -84,13 +84,11 @@ contract Shamba is Ownable, ReentrancyGuard {
         emit CropHarvested(msg.sender, plotIdx, ct, earned);
     }
 
-    /// @notice Visit a friend's farm — both earn +1 score point.
     function visitFriend(address friend) external {
         require(farms[msg.sender].initialized, "No farm");
         require(farms[friend].initialized, "Friend has no farm");
         require(friend != msg.sender, "Can't visit yourself");
-        farms[msg.sender].score += 1;
-        farms[friend].score += 1;
+        farms[msg.sender].score += 1; farms[friend].score += 1;
         farms[friend].lastVisit = block.timestamp;
         emit FriendVisited(msg.sender, friend);
     }
@@ -112,5 +110,25 @@ contract Shamba is Ownable, ReentrancyGuard {
             }
         }
         return (cropTypes, plantedAts, watered, states, farm.totalHarvests, farm.score, farm.lastVisit);
+    }
+
+    function getTopFarmers(uint256 limit) external view returns (address[] memory top, uint256[] memory scores) {
+        uint256 count = farmers.length < limit ? farmers.length : limit;
+        top = new address[](count); scores = new uint256[](count);
+        address[] memory sorted = new address[](farmers.length);
+        for (uint256 i = 0; i < farmers.length; i++) sorted[i] = farmers[i];
+        for (uint256 i = 0; i < farmers.length; i++) {
+            for (uint256 j = i + 1; j < farmers.length; j++) {
+                if (farms[sorted[j]].score > farms[sorted[i]].score) {
+                    address tmp = sorted[i]; sorted[i] = sorted[j]; sorted[j] = tmp;
+                }
+            }
+        }
+        for (uint256 i = 0; i < count; i++) { top[i] = sorted[i]; scores[i] = farms[sorted[i]].score; }
+    }
+
+    function withdrawFees() external onlyOwner {
+        uint256 amount = platformFeeBalance; platformFeeBalance = 0;
+        require(usdm.transfer(owner(), amount), "Transfer failed");
     }
 }
