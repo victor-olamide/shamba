@@ -22,11 +22,15 @@ contract Shamba is Ownable, ReentrancyGuard {
 
     mapping(address => Farm) public farms;
     address[] public farmers;
-
     mapping(address => address) public referredBy;
     mapping(address => uint32)  public referralCount;
-
     uint256 public platformFeeBalance;
+
+    event FarmCreated(address indexed farmer);
+    event CropPlanted(address indexed farmer, uint8 plotIdx, uint8 cropType);
+    event CropWatered(address indexed farmer, uint8 plotIdx);
+    event CropHarvested(address indexed farmer, uint8 plotIdx, uint8 cropType, uint256 score);
+    event FriendVisited(address indexed visitor, address indexed host);
 
     constructor(address _usdm) Ownable(msg.sender) {
         usdm = IERC20(_usdm);
