@@ -36,22 +36,18 @@ contract Shamba is Ownable, ReentrancyGuard {
 
     function createFarm(address referrer) external {
         require(!farms[msg.sender].initialized, "Farm exists");
-        farms[msg.sender].initialized = true;
-        farms[msg.sender].lastVisit = block.timestamp;
+        farms[msg.sender].initialized = true; farms[msg.sender].lastVisit = block.timestamp;
         farmers.push(msg.sender);
         if (referrer != address(0) && referrer != msg.sender && farms[referrer].initialized) {
-            referredBy[msg.sender] = referrer;
-            referralCount[referrer]++;
+            referredBy[msg.sender] = referrer; referralCount[referrer]++;
         }
         emit FarmCreated(msg.sender);
     }
 
     function plant(uint8 plotIdx, uint8 cropType) external nonReentrant {
         require(farms[msg.sender].initialized, "No farm");
-        require(plotIdx < MAX_PLOTS, "Invalid plot");
-        require(cropType < CROP_COUNT, "Invalid crop");
-        Farm storage farm = farms[msg.sender];
-        Plot storage plot = farm.plots[plotIdx];
+        require(plotIdx < MAX_PLOTS, "Invalid plot"); require(cropType < CROP_COUNT, "Invalid crop");
+        Plot storage plot = farms[msg.sender].plots[plotIdx];
         require(plot.state == CropState.EMPTY, "Plot not empty");
         if (seedCost[cropType] > 0) {
             require(usdm.transferFrom(msg.sender, address(this), seedCost[cropType]), "Payment failed");
@@ -62,7 +58,6 @@ contract Shamba is Ownable, ReentrancyGuard {
         emit CropPlanted(msg.sender, plotIdx, cropType);
     }
 
-    /// @notice Water a planted crop — reduces remaining growth time by 25%.
     function water(uint8 plotIdx) external {
         require(farms[msg.sender].initialized, "No farm");
         Plot storage plot = farms[msg.sender].plots[plotIdx];
@@ -70,5 +65,25 @@ contract Shamba is Ownable, ReentrancyGuard {
         require(!plot.watered, "Already watered");
         plot.watered = true;
         emit CropWatered(msg.sender, plotIdx);
+    }
+
+    /// @notice Harvest a grown crop. Grants score; referrer earns 10% bonus.
+    function harvest(uint8 plotIdx) external nonReentrant {
+        require(farms[msg.sender].initialized, "No farm");
+        Farm storage farm = farms[msg.sender];
+        Plot storage plot = farm.plots[plotIdx];
+        require(plot.state == CropState.PLANTED, "Not planted");
+        uint32 gt = growthTime[plot.cropType];
+        if (plot.watered) gt = (gt * 3) / 4;
+        require(block.timestamp >= plot.plantedAt + gt, "Not ready");
+        uint256 earned = harvestYield[plot.cropType];
+        uint8 ct = plot.cropType;
+        plot.state = CropState.EMPTY; plot.watered = false; plot.plantedAt = 0;
+        farm.totalHarvests++;
+        farm.score += earned;
+        farm.lastVisit = block.timestamp;
+        address ref = referredBy[msg.sender];
+        if (ref != address(0)) farms[ref].score += earned / 10;
+        emit CropHarvested(msg.sender, plotIdx, ct, earned);
     }
 }
