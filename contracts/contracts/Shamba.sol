@@ -34,7 +34,6 @@ contract Shamba is Ownable, ReentrancyGuard {
 
     constructor(address _usdm) Ownable(msg.sender) { usdm = IERC20(_usdm); }
 
-    /// @notice Initialize your farm (free, once per address).
     function createFarm(address referrer) external {
         require(!farms[msg.sender].initialized, "Farm exists");
         farms[msg.sender].initialized = true;
@@ -45,5 +44,24 @@ contract Shamba is Ownable, ReentrancyGuard {
             referralCount[referrer]++;
         }
         emit FarmCreated(msg.sender);
+    }
+
+    /// @notice Plant a crop. Free crops (0-3) cost no USDM. GoldenWheat costs 0.05 USDM.
+    function plant(uint8 plotIdx, uint8 cropType) external nonReentrant {
+        require(farms[msg.sender].initialized, "No farm");
+        require(plotIdx < MAX_PLOTS, "Invalid plot");
+        require(cropType < CROP_COUNT, "Invalid crop");
+        Farm storage farm = farms[msg.sender];
+        Plot storage plot = farm.plots[plotIdx];
+        require(plot.state == CropState.EMPTY, "Plot not empty");
+        if (seedCost[cropType] > 0) {
+            require(usdm.transferFrom(msg.sender, address(this), seedCost[cropType]), "Payment failed");
+            platformFeeBalance += seedCost[cropType];
+        }
+        plot.cropType  = cropType;
+        plot.plantedAt = uint32(block.timestamp);
+        plot.watered   = false;
+        plot.state     = CropState.PLANTED;
+        emit CropPlanted(msg.sender, plotIdx, cropType);
     }
 }
