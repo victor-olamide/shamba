@@ -46,7 +46,6 @@ contract Shamba is Ownable, ReentrancyGuard {
         emit FarmCreated(msg.sender);
     }
 
-    /// @notice Plant a crop. Free crops (0-3) cost no USDM. GoldenWheat costs 0.05 USDM.
     function plant(uint8 plotIdx, uint8 cropType) external nonReentrant {
         require(farms[msg.sender].initialized, "No farm");
         require(plotIdx < MAX_PLOTS, "Invalid plot");
@@ -58,10 +57,18 @@ contract Shamba is Ownable, ReentrancyGuard {
             require(usdm.transferFrom(msg.sender, address(this), seedCost[cropType]), "Payment failed");
             platformFeeBalance += seedCost[cropType];
         }
-        plot.cropType  = cropType;
-        plot.plantedAt = uint32(block.timestamp);
-        plot.watered   = false;
-        plot.state     = CropState.PLANTED;
+        plot.cropType = cropType; plot.plantedAt = uint32(block.timestamp);
+        plot.watered = false; plot.state = CropState.PLANTED;
         emit CropPlanted(msg.sender, plotIdx, cropType);
+    }
+
+    /// @notice Water a planted crop — reduces remaining growth time by 25%.
+    function water(uint8 plotIdx) external {
+        require(farms[msg.sender].initialized, "No farm");
+        Plot storage plot = farms[msg.sender].plots[plotIdx];
+        require(plot.state == CropState.PLANTED, "Not planted");
+        require(!plot.watered, "Already watered");
+        plot.watered = true;
+        emit CropWatered(msg.sender, plotIdx);
     }
 }
