@@ -5,7 +5,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-/// @notice Shamba — on-chain idle farming game on Celo.
+/// @notice Shamba — on-chain idle farming game on Celo. Plant, water, harvest.
+/// Free to play; optional USDM to buy premium seeds (GoldenWheat).
 contract Shamba is Ownable, ReentrancyGuard {
     IERC20 public immutable usdm;
 
@@ -67,7 +68,6 @@ contract Shamba is Ownable, ReentrancyGuard {
         emit CropWatered(msg.sender, plotIdx);
     }
 
-    /// @notice Harvest a grown crop. Grants score; referrer earns 10% bonus.
     function harvest(uint8 plotIdx) external nonReentrant {
         require(farms[msg.sender].initialized, "No farm");
         Farm storage farm = farms[msg.sender];
@@ -76,14 +76,41 @@ contract Shamba is Ownable, ReentrancyGuard {
         uint32 gt = growthTime[plot.cropType];
         if (plot.watered) gt = (gt * 3) / 4;
         require(block.timestamp >= plot.plantedAt + gt, "Not ready");
-        uint256 earned = harvestYield[plot.cropType];
-        uint8 ct = plot.cropType;
+        uint256 earned = harvestYield[plot.cropType]; uint8 ct = plot.cropType;
         plot.state = CropState.EMPTY; plot.watered = false; plot.plantedAt = 0;
-        farm.totalHarvests++;
-        farm.score += earned;
-        farm.lastVisit = block.timestamp;
+        farm.totalHarvests++; farm.score += earned; farm.lastVisit = block.timestamp;
         address ref = referredBy[msg.sender];
         if (ref != address(0)) farms[ref].score += earned / 10;
         emit CropHarvested(msg.sender, plotIdx, ct, earned);
+    }
+
+    /// @notice Visit a friend's farm — both earn +1 score point.
+    function visitFriend(address friend) external {
+        require(farms[msg.sender].initialized, "No farm");
+        require(farms[friend].initialized, "Friend has no farm");
+        require(friend != msg.sender, "Can't visit yourself");
+        farms[msg.sender].score += 1;
+        farms[friend].score += 1;
+        farms[friend].lastVisit = block.timestamp;
+        emit FriendVisited(msg.sender, friend);
+    }
+
+    function getFarm(address farmer) external view returns (
+        uint8[6] memory cropTypes, uint32[6] memory plantedAts,
+        bool[6] memory watered, uint8[6] memory states,
+        uint32 totalHarvests, uint256 score, uint256 lastVisit
+    ) {
+        Farm storage farm = farms[farmer];
+        for (uint8 i = 0; i < MAX_PLOTS; i++) {
+            Plot storage p = farm.plots[i];
+            cropTypes[i] = p.cropType; plantedAts[i] = p.plantedAt; watered[i] = p.watered;
+            if (p.state == CropState.EMPTY) { states[i] = 0; }
+            else {
+                uint32 gt = growthTime[p.cropType];
+                if (p.watered) gt = (gt * 3) / 4;
+                states[i] = block.timestamp >= p.plantedAt + gt ? 2 : 1;
+            }
+        }
+        return (cropTypes, plantedAts, watered, states, farm.totalHarvests, farm.score, farm.lastVisit);
     }
 }
