@@ -32,7 +32,7 @@ export default function FarmView() {
 
   if (!farm) return <div className="text-center py-12 text-gray-500 text-sm">Loading farm...</div>;
 
-  const [cropTypes, plantedAts, watered, states, totalHarvests, score] = farm as [
+  const [cropTypes, plantedAts, watered, states, totalHarvests, score] = farm as unknown as [
     number[], number[], boolean[], number[], number, bigint, bigint
   ];
 
