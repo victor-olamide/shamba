@@ -185,7 +185,12 @@ export default function FarmView() {
                       <div style={{ fontSize: 11, fontWeight: 700, textShadow: "0 1px 2px rgba(0,0,0,.4)" }}>Tap to plant</div>
                     </div>
                   )}
-                  {!isEmpty && <div style={{ position: "absolute", top: 7, left: 7, background: "rgba(58,46,35,.62)", color: "#fff", fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 7, backdropFilter: "blur(2px)" }}>{CROP_NAMES[cropTypes[i]]}</div>}
+                  {!isEmpty && (
+                    <div style={{ position: "absolute", top: 7, left: 7, background: "rgba(58,46,35,.62)", color: "#fff", fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 7, backdropFilter: "blur(2px)", display: "flex", alignItems: "center", gap: 3 }}>
+                      {watered[i] && !isReady && <span title="Watered">💧</span>}
+                      {CROP_NAMES[cropTypes[i]]}
+                    </div>
+                  )}
                   {!isEmpty && <div style={{ position: "absolute", top: 7, right: 7, background: "rgba(58,46,35,.62)", color: "#ffe8b0", fontSize: 10, fontWeight: 800, padding: "2px 7px", borderRadius: 7, backdropFilter: "blur(2px)", fontFamily: "ui-monospace,monospace" }}>{isReady ? "Ready!" : fmtRemain(remain)}</div>}
                   {isGrowing && !watered[i] && (
                     <button onClick={e => { e.stopPropagation(); doWater(i); }} disabled={busy}
