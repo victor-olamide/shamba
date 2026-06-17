@@ -72,7 +72,7 @@ export default function FarmView() {
   const topAddrs  = topData ? (topData as readonly unknown[])[0] as string[] : [];
   const topScores = topData ? (topData as readonly unknown[])[1] as bigint[] : [];
 
-  const growingCount = states.filter((s, i) => s === 1 && i < 6).length;
+  const growingCount = states.filter(s => s === 1).length;
   const readyCount   = states.filter(s => s === 2).length;
   const emptyCount   = states.filter(s => s === 0).length;
 
@@ -150,7 +150,7 @@ export default function FarmView() {
           <div>
             <h2 style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 24, color: "#2f6b34", margin: 0 }}>Your field</h2>
             <p style={{ fontSize: 13, color: "#8a7256", margin: "2px 0 0" }}>
-              {emptyCount > 0 ? `Tap an empty plot to plant · ${emptyCount} open` : "All plots planted!"}
+              {readyCount > 0 ? `${readyCount} plot${readyCount > 1 ? "s" : ""} ready to harvest!` : emptyCount > 0 ? `Tap an empty plot to plant · ${emptyCount} open` : "All plots growing — check back soon!"}
             </p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 7, background: "#fffaf2", border: "1px solid #ece0cc", padding: "7px 12px", borderRadius: 12, fontSize: 12, fontWeight: 700, color: "#7a6448", whiteSpace: "nowrap" }}>
