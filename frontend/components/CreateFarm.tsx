@@ -44,8 +44,15 @@ export default function CreateFarm() {
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            {["🌽 6 free plots", "💧 Water = +25% speed", "🏆 Live leaderboard", "🤝 Earn from friends"].map(f => (
-              <div key={f} style={{ background: "#fffaf2", border: "1px solid #ece0cc", borderRadius: 14, padding: "11px 13px", fontSize: 13, fontWeight: 600, color: "#5a4631" }}>{f}</div>
+            {[
+              ["🌽", "6 free plots"],
+              ["💧", "Water = +25% speed"],
+              ["🏆", "Live leaderboard"],
+              ["🤝", "Earn from friends"],
+            ].map(([icon, text]) => (
+              <div key={text} style={{ background: "#fffaf2", border: "1px solid #ece0cc", borderRadius: 14, padding: "11px 13px", fontSize: 13, fontWeight: 600, color: "#5a4631", display: "flex", alignItems: "center", gap: 7 }}>
+                <span style={{ fontSize: 16 }}>{icon}</span>{text}
+              </div>
             ))}
           </div>
 
