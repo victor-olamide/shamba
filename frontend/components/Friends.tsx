@@ -102,8 +102,9 @@ export default function Friends() {
             placeholder="0x… friend's address"
             style={{ flex: 1, minWidth: 200, background: "#f6efe2", border: "1px solid #e3d4ba", borderRadius: 11, padding: "11px 13px", fontSize: 14, color: "#3a2e23", fontFamily: "inherit", outline: "none", boxSizing: "border-box" }}
           />
-          <button onClick={doVisit} disabled={busy || !visitAddr.startsWith("0x")}
-            style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 700, fontSize: 15, border: "none", padding: "11px 20px", borderRadius: 12, cursor: busy || !visitAddr.startsWith("0x") ? "not-allowed" : "pointer", background: busy || !visitAddr.startsWith("0x") ? "#efe3cd" : "linear-gradient(180deg,#5fa83f,#357f2f)", color: busy || !visitAddr.startsWith("0x") ? "#b89a6a" : "#fff", whiteSpace: "nowrap" }}>
+          <button onClick={doVisit}
+            disabled={busy || !visitAddr.trim().startsWith("0x") || visitAddr.trim().length < 42}
+            style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 700, fontSize: 15, border: "none", padding: "11px 20px", borderRadius: 12, cursor: (busy || !visitAddr.trim().startsWith("0x")) ? "not-allowed" : "pointer", background: (busy || !visitAddr.trim().startsWith("0x") || visitAddr.trim().length < 42) ? "#efe3cd" : "linear-gradient(180deg,#5fa83f,#357f2f)", color: (busy || visitAddr.trim().length < 42) ? "#b89a6a" : "#fff", whiteSpace: "nowrap" }}>
             {busy ? "Visiting…" : "🤝 Visit +1"}
           </button>
         </div>
