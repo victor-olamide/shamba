@@ -134,8 +134,8 @@ export default function Home() {
                 <div style={{ height: "100%", width: xpPct + "%", background: "linear-gradient(90deg,#6db04e,#357f2f)", borderRadius: 4, transition: "width .5s ease" }} />
               </div>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 4, background: "#f0e3cd", padding: "4px 10px 4px 6px", borderRadius: 11 }}>
-              <div style={{ width: 24, height: 24, borderRadius: 8, background: "linear-gradient(135deg,#8a5e3b,#5e3d24)" }} />
+                    <div style={{ display: "flex", alignItems: "center", gap: 4, background: "#f0e3cd", padding: "4px 10px 4px 6px", borderRadius: 11 }} title={address}>
+              <div style={{ width: 24, height: 24, borderRadius: 8, background: "linear-gradient(135deg,#8a5e3b,#5e3d24)", flexShrink: 0 }} />
               <span style={{ fontSize: 12, fontWeight: 700, color: "#7a6448", fontFamily: "ui-monospace,monospace" }}>{walletShort}</span>
             </div>
           </div>
