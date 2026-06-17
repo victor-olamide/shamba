@@ -30,9 +30,15 @@ export default function Home() {
   if (!isConnected) {
     return (
       <div style={{ position: "relative", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 20px", overflow: "hidden", background: "linear-gradient(180deg,#bfe6f2 0%,#dff0d6 40%,#e9d9b6 64%,#caa46e 100%)" }}>
+        {/* Sun */}
         <div style={{ position: "absolute", top: "7%", right: "9%", width: 118, height: 118, borderRadius: "50%", background: "radial-gradient(circle,#fff3c2 0%,#ffd860 55%,#f6b929 100%)", boxShadow: "0 0 70px 24px rgba(255,210,90,.55)", animation: "sunpulse 5s ease-in-out infinite" }} />
+        {/* Clouds */}
         <div style={{ position: "absolute", top: "16%", left: "8%", width: 120, height: 34, borderRadius: 30, background: "rgba(255,255,255,.85)", filter: "blur(1px)", animation: "drift 14s ease-in-out infinite alternate" }} />
         <div style={{ position: "absolute", top: "28%", left: "24%", width: 80, height: 26, borderRadius: 30, background: "rgba(255,255,255,.7)", filter: "blur(1px)", animation: "drift 18s ease-in-out infinite alternate-reverse" }} />
+        {/* Floating particles */}
+        <div style={{ position: "absolute", bottom: "30%", left: "18%", width: 7, height: 7, borderRadius: "50%", background: "#fff7d6", animation: "floaty 9s ease-in infinite" }} />
+        <div style={{ position: "absolute", bottom: "34%", left: "62%", width: 6, height: 6, borderRadius: "50%", background: "#fff7d6", animation: "floaty 11s ease-in 1.5s infinite" }} />
+        <div style={{ position: "absolute", bottom: "40%", left: "80%", width: 5, height: 5, borderRadius: "50%", background: "#fff7d6", animation: "floaty 8s ease-in 3s infinite" }} />
 
         <div style={{ position: "relative", zIndex: 3, textAlign: "center", maxWidth: 560 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,.55)", border: "1px solid rgba(255,255,255,.7)", padding: "6px 14px", borderRadius: 30, fontSize: 12, fontWeight: 700, color: "#357f2f", letterSpacing: ".03em", marginBottom: 18 }}>
