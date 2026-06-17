@@ -226,8 +226,8 @@ export default function FarmView() {
               {CROP_NAMES.map((name, i) => (
                 <div key={i} className="crop-card" onClick={() => setCropChoice(i)}
                   style={{ borderRadius: 15, padding: "12px 10px", cursor: "pointer", textAlign: "center", background: cropChoice === i ? "#eef8e6" : "#f7f0e2", border: `2px solid ${cropChoice === i ? "#5fa83f" : "transparent"}`, transition: "transform .12s ease" }}>
-                  <div style={{ position: "relative", height: 40, display: "flex", alignItems: "flex-end", justifyContent: "center", marginBottom: 6 }}>
-                    <CropEmblem cropIdx={i} />
+                  <div style={{ position: "relative", height: 44, display: "flex", alignItems: "flex-end", justifyContent: "center", marginBottom: 6 }}>
+                    <CropEmblem cropIdx={i} size={44} />
                   </div>
                   <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 700, fontSize: 13, color: "#3a2e23" }}>{name}</div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "#357f2f", marginTop: 1 }}>+{CROP_YIELD[i]} pts</div>
