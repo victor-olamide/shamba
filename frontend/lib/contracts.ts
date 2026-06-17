@@ -1,5 +1,5 @@
 export const USDM_ADDRESS = "0x765DE816845861e75A25fCA122bb6898B8B1282a" as const;
-export const SHAMBA_ADDRESS = "" as `0x${string}`;
+export const SHAMBA_ADDRESS = "0x485DcF3e778605EB43a232ea1d53CDb56D0B8bC1" as `0x${string}`;
 
 export const CROP_NAMES = ["Maize", "Tomato", "Cassava", "Sunflower", "Golden Wheat"];
 export const CROP_EMOJI = ["🌽", "🍅", "🥔", "🌻", "🌾"];
