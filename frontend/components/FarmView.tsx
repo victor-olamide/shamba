@@ -238,7 +238,7 @@ export default function FarmView() {
             </div>
             <button onClick={doPlant} disabled={busy}
               style={{ width: "100%", marginTop: 12, fontFamily: "'Baloo 2',cursive", fontWeight: 700, fontSize: 16, border: "none", padding: 13, borderRadius: 14, background: busy ? "#efe3cd" : "linear-gradient(180deg,#5fa83f,#357f2f)", color: busy ? "#b89a6a" : "#fff", cursor: busy ? "not-allowed" : "pointer", boxShadow: busy ? "none" : "0 8px 18px -6px rgba(53,107,44,.5)" }}>
-              {busy ? "Confirming…" : `🌱 Plant ${CROP_NAMES[cropChoice]}`}
+              {busy ? "Confirming…" : CROP_COST_USDM[cropChoice] > 0 ? `🌱 Plant ${CROP_NAMES[cropChoice]} — ${CROP_COST_USDM[cropChoice]} USDM` : `🌱 Plant ${CROP_NAMES[cropChoice]}`}
             </button>
           </div>
         )}
