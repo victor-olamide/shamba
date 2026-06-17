@@ -27,7 +27,8 @@ export default function Leaderboard() {
 
   const topAddrs  = topData ? (topData as readonly unknown[])[0] as string[] : [];
   const topScores = topData ? (topData as readonly unknown[])[1] as bigint[] : [];
-  const myScore   = myFarm  ? (myFarm  as readonly unknown[])[1] as bigint : 0n;
+  const myScore    = myFarm  ? (myFarm  as readonly unknown[])[1] as bigint : 0n;
+  const myHarvests = myFarm  ? Number((myFarm as readonly unknown[])[0]) : 0;
 
   const top3 = topAddrs.slice(0, 3);
   const podiumOrder = top3.length >= 2 ? [1, 0, 2].map(i => top3[i]).filter(Boolean) : top3;
@@ -43,13 +44,17 @@ export default function Leaderboard() {
       {/* My stats */}
       {address && (
         <div style={{ background: "#fffaf2", border: "1px solid #ece0cc", borderRadius: 20, padding: 16 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 26, color: "#2f6b34" }}>{myScore.toString()}</div>
+              <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 22, color: "#2f6b34" }}>{Number(myScore).toLocaleString()}</div>
               <div style={{ fontSize: 11, fontWeight: 700, color: "#8a7256", letterSpacing: ".04em" }}>YOUR SCORE</div>
             </div>
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 26, color: "#c8881a" }}>{myRefs?.toString() ?? "0"}</div>
+              <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 22, color: "#9a6a14" }}>{myHarvests}</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#8a7256", letterSpacing: ".04em" }}>HARVESTS</div>
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 22, color: "#c8881a" }}>{myRefs?.toString() ?? "0"}</div>
               <div style={{ fontSize: 11, fontWeight: 700, color: "#8a7256", letterSpacing: ".04em" }}>REFERRALS</div>
             </div>
           </div>
