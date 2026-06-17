@@ -56,6 +56,7 @@ export default function FarmView() {
     <div style={{ textAlign: "center", padding: "80px 20px", color: "#8a7256" }}>
       <div style={{ fontSize: 48, marginBottom: 12, display: "inline-block", animation: "bob 2s ease-in-out infinite" }}>🌱</div>
       <p style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 700, fontSize: 16 }}>Loading your farm…</p>
+      <p style={{ fontSize: 13, color: "#a08a6e", marginTop: 6 }}>Fetching on-chain data from Celo</p>
     </div>
   );
 
