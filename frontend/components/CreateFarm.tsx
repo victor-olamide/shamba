@@ -1,8 +1,8 @@
 "use client";
-
 import { useState } from "react";
 import { useWriteContract } from "wagmi";
 import { SHAMBA_ADDRESS, SHAMBA_ABI } from "@/lib/contracts";
+import { RenderPlant } from "./PlantArt";
 
 export default function CreateFarm() {
   const [referrer, setReferrer] = useState("");
@@ -16,34 +16,55 @@ export default function CreateFarm() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="bg-green-900/20 border border-green-700 rounded-2xl p-5 text-center space-y-2">
-        <p className="text-4xl">🌱</p>
-        <p className="text-xl font-bold text-green-400">Start Your Shamba</p>
-        <p className="text-sm text-gray-400">Plant crops, water them, harvest for score. Free to start — no USDM needed.</p>
-      </div>
+    <div style={{ width: "100%", maxWidth: 760, display: "grid", gridTemplateColumns: "1fr", gap: 18 }}>
+      <style>{`@media(min-width:660px){.create-inner{grid-template-columns:1fr 1fr!important;}}`}</style>
+      <div className="create-inner" style={{ display: "grid", gridTemplateColumns: "1fr", gap: 18 }}>
+        {/* Landscape card */}
+        <div style={{ background: "linear-gradient(180deg,#bfe6f2,#dff0d6 45%,#caa46e)", borderRadius: 26, padding: 26, position: "relative", overflow: "hidden", minHeight: 280, display: "flex", flexDirection: "column", justifyContent: "flex-end", boxShadow: "0 18px 40px -16px rgba(122,82,52,.45)" }}>
+          <div style={{ position: "absolute", top: 20, right: 22, width: 64, height: 64, borderRadius: "50%", background: "radial-gradient(circle,#fff3c2,#ffd860 60%,#f6b929)", boxShadow: "0 0 40px 12px rgba(255,210,90,.5)", animation: "sunpulse 5s ease-in-out infinite" }} />
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-around", height: 88, marginBottom: 8 }}>
+            {[0, 2, 3].map((crop, i) => (
+              <div key={i} style={{ position: "relative", width: 40, height: 84 }}>
+                <RenderPlant cropIdx={crop} progress={1} ready={true} />
+              </div>
+            ))}
+          </div>
+          <div style={{ background: "rgba(58,46,35,.55)", backdropFilter: "blur(4px)", borderRadius: 14, padding: "12px 14px", color: "#fff" }}>
+            <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 18 }}>Your plot of land is waiting</div>
+            <div style={{ fontSize: 12.5, opacity: 0.85, marginTop: 2 }}>6 plots · 5 crops · 100% yours, on-chain.</div>
+          </div>
+        </div>
 
-      <div className="bg-gray-900 rounded-2xl p-4 space-y-3">
-        <p className="text-xs text-gray-400">Referral code (optional)</p>
-        <input value={referrer} onChange={e => setReferrer(e.target.value)} placeholder="0x... friend's address"
-          className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-green-600" />
-        <p className="text-xs text-gray-600">Your friend earns 10% bonus on your harvests</p>
-      </div>
+        {/* Form */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#eaf5e2", color: "#357f2f", fontSize: 12, fontWeight: 700, padding: "5px 12px", borderRadius: 20 }}>🌾 NEW FARM</div>
+            <h2 style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 30, color: "#2f6b34", margin: "12px 0 4px" }}>Start your Shamba</h2>
+            <p style={{ fontSize: 14, color: "#7a6448", margin: 0, lineHeight: 1.5 }}>Claim your farm to begin. It&apos;s free — plant your first crop in seconds.</p>
+          </div>
 
-      <div className="bg-gray-900 rounded-2xl p-4 space-y-2 text-sm">
-        <p className="font-semibold text-white">What you get</p>
-        <div className="grid grid-cols-2 gap-2 text-xs text-gray-400">
-          <div className="bg-gray-800 rounded-xl p-3">🌽 6 free plots</div>
-          <div className="bg-gray-800 rounded-xl p-3">🍅 4 free crop types</div>
-          <div className="bg-gray-800 rounded-xl p-3">💧 Watering bonus</div>
-          <div className="bg-gray-800 rounded-xl p-3">🤝 Visit friends</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            {["🌽 6 free plots", "💧 Water = +25% speed", "🏆 Live leaderboard", "🤝 Earn from friends"].map(f => (
+              <div key={f} style={{ background: "#fffaf2", border: "1px solid #ece0cc", borderRadius: 14, padding: "11px 13px", fontSize: 13, fontWeight: 600, color: "#5a4631" }}>{f}</div>
+            ))}
+          </div>
+
+          <div style={{ background: "#fffaf2", border: "1px solid #ece0cc", borderRadius: 16, padding: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#8a7256", marginBottom: 7 }}>REFERRAL CODE (OPTIONAL)</div>
+            <input
+              value={referrer} onChange={e => setReferrer(e.target.value)}
+              placeholder="0x… friend's address"
+              style={{ width: "100%", background: "#f6efe2", border: "1px solid #e3d4ba", borderRadius: 11, padding: "11px 13px", fontSize: 14, color: "#3a2e23", fontFamily: "inherit", outline: "none", boxSizing: "border-box" }}
+            />
+            <div style={{ fontSize: 12, color: "#a08a6e", marginTop: 7 }}>Your friend earns <b style={{ color: "#357f2f" }}>10%</b> of your harvest score.</div>
+          </div>
+
+          <button onClick={handleCreate} disabled={isPending}
+            style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 700, fontSize: 18, color: "#fff", background: isPending ? "#efe3cd" : "linear-gradient(180deg,#5fa83f,#357f2f)", border: "none", padding: 15, borderRadius: 16, cursor: isPending ? "not-allowed" : "pointer", boxShadow: isPending ? "none" : "0 10px 22px -6px rgba(53,107,44,.55)" }}>
+            {isPending ? "Creating farm…" : "🌱 Claim my farm"}
+          </button>
         </div>
       </div>
-
-      <button onClick={handleCreate} disabled={isPending}
-        className={`w-full py-3.5 rounded-xl font-bold transition-colors ${isPending ? "bg-gray-700 text-gray-500" : "bg-green-700 hover:bg-green-600 text-white"}`}>
-        {isPending ? "Creating farm..." : "🌾 Create My Farm"}
-      </button>
     </div>
   );
 }
