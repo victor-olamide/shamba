@@ -72,7 +72,7 @@ export default function Home() {
             style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 700, fontSize: 19, color: "#fff", background: "linear-gradient(180deg,#5fa83f,#357f2f)", border: "none", padding: "16px 40px", borderRadius: 18, cursor: "pointer", boxShadow: "0 10px 24px -6px rgba(53,107,44,.6),inset 0 2px 0 rgba(255,255,255,.25)" }}>
             👛 Connect Wallet
           </button>
-          <p style={{ fontSize: 13, color: "#7a6448", margin: "14px 0 0", fontWeight: 600 }}>Free to play · Built for MiniPay</p>
+          <p style={{ fontSize: 13, color: "#7a6448", margin: "14px 0 0", fontWeight: 600 }}>Free to play · No gas needed · Built for MiniPay</p>
 
           <div style={{ display: "flex", justifyContent: "center", gap: 26, marginTop: 30, flexWrap: "wrap" }}>
             {[
