@@ -72,6 +72,8 @@ export default function FarmView() {
   const topAddrs  = topData ? (topData as readonly unknown[])[0] as string[] : [];
   const topScores = topData ? (topData as readonly unknown[])[1] as bigint[] : [];
 
+  const fmtScore = (v: bigint) => Number(v).toLocaleString();
+
   const growingCount = states.filter(s => s === 1).length;
   const readyCount   = states.filter(s => s === 2).length;
   const emptyCount   = states.filter(s => s === 0).length;
@@ -264,7 +266,7 @@ export default function FarmView() {
                     <div style={{ width: 22, textAlign: "center", fontWeight: 800, fontSize: 13 }}>{medals[i]}</div>
                     <div style={{ width: 26, height: 26, borderRadius: 8, background: AVATAR_COLORS[i % AVATAR_COLORS.length], display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 11, fontWeight: 800 }}>{addr[2].toUpperCase()}</div>
                     <div style={{ flex: 1, fontSize: 12, fontWeight: 700, color: "#3a2e23", fontFamily: "ui-monospace,monospace" }}>{addr.slice(0,6)}…{addr.slice(-4)}{isMe ? " (you)" : ""}</div>
-                    <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 13, color: "#2f6b34" }}>{topScores[i]?.toString() ?? "0"}</div>
+                    <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 13, color: "#2f6b34" }}>{topScores[i] != null ? fmtScore(topScores[i]) : "0"}</div>
                   </div>
                 );
               })}
