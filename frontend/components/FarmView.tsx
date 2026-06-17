@@ -275,7 +275,9 @@ export default function FarmView() {
         <div style={{ background: "#fffaf2", border: "1px solid #ece0cc", borderRadius: 20, padding: 16, boxShadow: "0 10px 28px -18px rgba(122,82,52,.5)" }}>
           <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 16, color: "#3a2e23", marginBottom: 11 }}>🌿 Activity</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-            {activity.map(a => (
+            {activity.length === 0 ? (
+              <div style={{ fontSize: 12.5, color: "#a08a6e", textAlign: "center", padding: "12px 0" }}>No activity yet — start planting!</div>
+            ) : activity.map(a => (
               <div key={a.key} style={{ display: "flex", alignItems: "center", gap: 9 }}>
                 <div style={{ width: 28, height: 28, borderRadius: 9, background: a.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>{a.icon}</div>
                 <div style={{ flex: 1, fontSize: 12.5, color: "#5a4631", lineHeight: 1.3 }}>{a.text}</div>
