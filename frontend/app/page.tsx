@@ -15,6 +15,11 @@ export default function Home() {
   const { connect, connectors } = useConnect();
   const [tab, setTab] = useState<Tab>("farm");
 
+  function switchTab(t: Tab) {
+    setTab(t);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   const { data: farmData } = useReadContract({
     address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "farms",
     args: address ? [address] : undefined,
@@ -117,9 +122,9 @@ export default function Home() {
           </div>
 
           <div style={{ display: "flex", gap: 3, background: "#f0e3cd", padding: 4, borderRadius: 14 }}>
-            <button onClick={() => setTab("farm")}    style={tabStyle("farm")}>🌾 Farm</button>
-            <button onClick={() => setTab("board")}   style={tabStyle("board")}>🏆 Rankings</button>
-            <button onClick={() => setTab("friends")} style={tabStyle("friends")}>🤝 Friends</button>
+            <button onClick={() => switchTab("farm")}    style={tabStyle("farm")}>🌾 Farm</button>
+            <button onClick={() => switchTab("board")}   style={tabStyle("board")}>🏆 Rankings</button>
+            <button onClick={() => switchTab("friends")} style={tabStyle("friends")}>🤝 Friends</button>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
