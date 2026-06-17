@@ -37,8 +37,10 @@ export default function Friends() {
   }
 
   function doVisit() {
-    if (!visitAddr.startsWith("0x")) return;
-    writeContract({ address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "visitFriend", args: [visitAddr as `0x${string}`] });
+    const addr = visitAddr.trim();
+    if (!addr.startsWith("0x") || addr.length < 42) return;
+    if (addr.toLowerCase() === address?.toLowerCase()) return;
+    writeContract({ address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "visitFriend", args: [addr as `0x${string}`] });
     setVisitAddr("");
   }
 
