@@ -38,7 +38,7 @@ export default function CreateFarm() {
         {/* Form */}
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#eaf5e2", color: "#357f2f", fontSize: 12, fontWeight: 700, padding: "5px 12px", borderRadius: 20 }}>🌾 NEW FARM</div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#eaf5e2", color: "#357f2f", fontSize: 12, fontWeight: 700, padding: "5px 12px", borderRadius: 20 }}>🌾 START FOR FREE</div>
             <h2 style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 30, color: "#2f6b34", margin: "12px 0 4px" }}>Start your Shamba</h2>
             <p style={{ fontSize: 14, color: "#7a6448", margin: 0, lineHeight: 1.5 }}>Claim your farm to begin. It&apos;s free — plant your first crop in seconds.</p>
           </div>
