@@ -12,7 +12,7 @@ function fmtRemain(secs: number) {
   if (secs <= 0) return "Ready!";
   const h = Math.floor(secs / 3600), m = Math.floor((secs % 3600) / 60), s = secs % 60;
   if (h > 0) return `${h}h ${m}m`;
-  if (m > 0) return `${m}:${String(s).padStart(2, "0")}`;
+  if (m > 0) return `${m}m ${String(s).padStart(2, "0")}s`;
   return `${s}s`;
 }
 
