@@ -41,3 +41,4 @@ button{-webkit-tap-highlight-color:transparent;}
 .crop-card:hover{transform:translateY(-2px);}
 input:focus{outline:none;box-shadow:0 0 0 2px rgba(95,168,63,.35);}
 input{transition:box-shadow .15s ease;}
+html{scroll-behavior:smooth;}
