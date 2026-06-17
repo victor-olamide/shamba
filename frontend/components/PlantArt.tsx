@@ -1,7 +1,7 @@
 "use client";
 import type { CSSProperties } from "react";
 
-const CROP_COLORS = ["#e8b53a", "#e0623e", "#caa46e", "#f2c33d", "#d9a425"];
+const CROP_COLORS = ["#e8b53a", "#e0623e", "#caa46e", "#f2c33d", "#d9a425"] as const;
 
 function hexA(hex: string, a: number) {
   const n = parseInt(hex.slice(1), 16);
@@ -106,9 +106,9 @@ export function RenderPlant({ cropIdx, progress, ready }: { cropIdx: number; pro
   );
 }
 
-export function CropEmblem({ cropIdx }: { cropIdx: number }) {
+export function CropEmblem({ cropIdx, size = 40 }: { cropIdx: number; size?: number }) {
   return (
-    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+    <div style={{ position: "relative", width: size, height: size }}>
       <RenderPlant cropIdx={cropIdx} progress={1} ready={true} />
     </div>
   );
