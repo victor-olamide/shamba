@@ -3,7 +3,6 @@ export const SHAMBA_ADDRESS = "0x485DcF3e778605EB43a232ea1d53CDb56D0B8bC1" as `0
 
 export const CROP_NAMES  = ["Maize", "Tomato", "Cassava", "Sunflower", "Golden Wheat"];
 export const CROP_EMOJI  = ["🌽", "🍅", "🥔", "🌻", "🌾"];
-export const CROP_EMOJI = ["🌽", "🍅", "🥔", "🌻", "🌾"];
 export const CROP_GROWTH_SECS = [3600, 7200, 14400, 21600, 1800];
 export const CROP_YIELD = [10, 20, 40, 60, 100];
 export const CROP_COST_USDM = [0, 0, 0, 0, 0.05];
