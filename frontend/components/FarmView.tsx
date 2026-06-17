@@ -246,6 +246,13 @@ export default function FarmView() {
 
       {/* RIGHT: mini leaderboard + activity */}
       <div className="farm-right" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {topAddrs.length === 0 && (
+          <div style={{ background: "#fffaf2", border: "1px solid #ece0cc", borderRadius: 20, padding: 20, textAlign: "center" }}>
+            <div style={{ fontSize: 32, marginBottom: 8 }}>🏆</div>
+            <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 700, fontSize: 15, color: "#8a7256" }}>No farmers yet</div>
+            <div style={{ fontSize: 12, color: "#a08a6e", marginTop: 4 }}>Be the first on the leaderboard!</div>
+          </div>
+        )}
         {topAddrs.length > 0 && (
           <div style={{ background: "#fffaf2", border: "1px solid #ece0cc", borderRadius: 20, padding: 16, boxShadow: "0 10px 28px -18px rgba(122,82,52,.5)" }}>
             <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 16, color: "#3a2e23", marginBottom: 11 }}>🏆 Top farmers</div>
