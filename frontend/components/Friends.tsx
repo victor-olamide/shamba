@@ -9,6 +9,7 @@ export default function Friends() {
   const { address } = useAccount();
   const [visitAddr, setVisitAddr] = useState("");
   const [copied, setCopied]       = useState(false);
+  const [visited, setVisited]     = useState(false);
 
   const { data: myRefs } = useReadContract({
     address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "referralCount",
@@ -42,6 +43,8 @@ export default function Friends() {
     if (addr.toLowerCase() === address?.toLowerCase()) return;
     writeContract({ address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "visitFriend", args: [addr as `0x${string}`] });
     setVisitAddr("");
+    setVisited(true);
+    setTimeout(() => setVisited(false), 3000);
   }
 
   return (
@@ -86,7 +89,10 @@ export default function Friends() {
 
       {/* Visit a friend */}
       <div style={{ background: "#fffaf2", border: "1px solid #ece0cc", borderRadius: 20, padding: 16, boxShadow: "0 12px 30px -20px rgba(122,82,52,.5)" }}>
-        <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 16, color: "#3a2e23", marginBottom: 12 }}>Visit a friend&apos;s farm</div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+          <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 16, color: "#3a2e23" }}>Visit a friend&apos;s farm</div>
+          {visited && <div style={{ fontSize: 12, fontWeight: 700, color: "#357f2f", background: "#eaf5e2", padding: "4px 10px", borderRadius: 8 }}>✓ Visited! +1 pt</div>}
+        </div>
         <p style={{ fontSize: 13, color: "#7a6448", margin: "0 0 12px", lineHeight: 1.5 }}>
           Enter a friend&apos;s wallet address to visit their farm and earn <b style={{ color: "#357f2f" }}>+1 score</b> per visit.
         </p>
