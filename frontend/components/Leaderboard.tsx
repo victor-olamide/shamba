@@ -1,6 +1,6 @@
 "use client";
 import { useAccount, useReadContract } from "wagmi";
-import { SHAMBA_ADDRESS, SHAMBA_ABI, CROP_NAMES, CROP_GROWTH_SECS, CROP_YIELD } from "@/lib/contracts";
+import { SHAMBA_ADDRESS, SHAMBA_ABI, CROP_NAMES, CROP_GROWTH_SECS, CROP_YIELD, CROP_COST_USDM } from "@/lib/contracts";
 
 const AVATAR_COLORS = ["#e0623e", "#4a9ed1", "#9a6ad1", "#5fa83f", "#d99417", "#3fa3a3", "#c85a8a"];
 const BAR_BG = ["linear-gradient(180deg,#f0bf4a,#d99417)", "linear-gradient(180deg,#c9cdd6,#9aa0ad)", "linear-gradient(180deg,#d6a06a,#b07840)"];
@@ -114,15 +114,20 @@ export default function Leaderboard() {
       <div style={{ background: "#fffaf2", border: "1px solid #ece0cc", borderRadius: 20, padding: 16 }}>
         <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 16, color: "#3a2e23", marginBottom: 10 }}>🌱 Crop yields</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(120px,1fr))", gap: 8 }}>
-          {CROP_NAMES.map((name, i) => (
-            <div key={name} style={{ display: "flex", alignItems: "center", gap: 9, background: "#f7f0e2", border: "1px solid #e8dac2", borderRadius: 12, padding: "9px 11px" }}>
-              <div style={{ fontSize: 18, flexShrink: 0 }}>{"🌽🍅🥔🌻🌾"[i]}</div>
-              <div>
-                <div style={{ fontSize: 12.5, fontWeight: 700, color: "#3a2e23" }}>{name}</div>
-                <div style={{ fontSize: 11, color: "#357f2f", fontWeight: 700 }}>+{CROP_YIELD[i]} · {Math.floor(CROP_GROWTH_SECS[i] / 60)}m</div>
+          {CROP_NAMES.map((name, i) => {
+            const mins = CROP_GROWTH_SECS[i] >= 3600
+              ? `${Math.floor(CROP_GROWTH_SECS[i] / 3600)}h`
+              : `${Math.floor(CROP_GROWTH_SECS[i] / 60)}m`;
+            return (
+              <div key={name} style={{ display: "flex", alignItems: "center", gap: 9, background: "#f7f0e2", border: "1px solid #e8dac2", borderRadius: 12, padding: "9px 11px" }}>
+                <div style={{ fontSize: 18, flexShrink: 0 }}>{"🌽🍅🥔🌻🌾"[i]}</div>
+                <div>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: "#3a2e23" }}>{name}</div>
+                  <div style={{ fontSize: 11, color: "#357f2f", fontWeight: 700 }}>+{CROP_YIELD[i]} pts · {mins}{CROP_COST_USDM[i] > 0 ? ` · ${CROP_COST_USDM[i]} USDM` : " · Free"}</div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
