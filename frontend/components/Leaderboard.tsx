@@ -84,10 +84,14 @@ export default function Leaderboard() {
       <div style={{ background: "#fffaf2", border: "1px solid #ece0cc", borderRadius: 20, overflow: "hidden", boxShadow: "0 12px 30px -20px rgba(122,82,52,.5)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderBottom: "1px solid #ece0cc" }}>
           <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 16, color: "#3a2e23" }}>All farmers</div>
-          <button onClick={() => refetch()} style={{ background: "none", border: "none", fontSize: 12, fontWeight: 700, color: "#357f2f", cursor: "pointer" }}>Refresh ↻</button>
+          <button onClick={() => refetch()} style={{ background: "none", border: "none", fontSize: 12, fontWeight: 700, color: "#357f2f", cursor: "pointer" }} title="Refresh leaderboard">Refresh ↻</button>
         </div>
         {topAddrs.length === 0 ? (
-          <div style={{ padding: "40px 20px", textAlign: "center", color: "#8a7256", fontSize: 14 }}>No farmers yet — be the first!</div>
+          <div style={{ padding: "40px 20px", textAlign: "center" }}>
+            <div style={{ fontSize: 36, marginBottom: 10 }}>🌱</div>
+            <div style={{ fontSize: 14, color: "#5a4631", fontWeight: 700 }}>No farmers yet</div>
+            <div style={{ fontSize: 12, color: "#8a7256", marginTop: 4 }}>Be the first to create a farm and top the board!</div>
+          </div>
         ) : (
           topAddrs.map((addr, i) => {
             const isMe = addr.toLowerCase() === address?.toLowerCase();
