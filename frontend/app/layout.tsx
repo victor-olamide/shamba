@@ -11,6 +11,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="talentapp:project_verification" content="b8284cc66b137ee355be3e58b3b7f29a4b400e0f64b5f7acc32f32a7c838b0a6532fe515e366cd14b1e6e3255d53b59ebfb3bffbb41618c4dd44e3d7a139e027" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

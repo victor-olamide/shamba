@@ -7,6 +7,7 @@ import Leaderboard from "@/components/Leaderboard";
 import Friends from "@/components/Friends";
 import { SHAMBA_ADDRESS, SHAMBA_ABI } from "@/lib/contracts";
 import { RenderPlant } from "@/components/PlantArt";
+import { isMiniPay } from "./providers";
 
 type Tab = "farm" | "board" | "friends";
 
@@ -33,6 +34,7 @@ export default function Home() {
   const walletShort = address ? address.slice(0, 6) + "…" + address.slice(-4) : "";
 
   if (!isConnected) {
+    const inMiniPay = isMiniPay();
     return (
       <div style={{ position: "relative", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 20px", overflow: "hidden", background: "linear-gradient(180deg,#bfe6f2 0%,#dff0d6 40%,#e9d9b6 64%,#caa46e 100%)" }}>
         {/* Sun */}
@@ -67,12 +69,18 @@ export default function Home() {
             ))}
           </div>
 
-          <button
-            onClick={() => connectors[0] && connect({ connector: connectors[0] })}
-            style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 700, fontSize: 19, color: "#fff", background: "linear-gradient(180deg,#5fa83f,#357f2f)", border: "none", padding: "16px 40px", borderRadius: 18, cursor: "pointer", boxShadow: "0 10px 24px -6px rgba(53,107,44,.6),inset 0 2px 0 rgba(255,255,255,.25)" }}>
-            👛 Connect Wallet
-          </button>
-          <p style={{ fontSize: 13, color: "#7a6448", margin: "14px 0 0", fontWeight: 600 }}>Free to play · No gas needed · Built for MiniPay</p>
+          {inMiniPay ? (
+            <p style={{ fontSize: 15, color: "#7a6448", margin: "14px 0 0", fontWeight: 600 }}>Connecting your MiniPay wallet…</p>
+          ) : (
+            <>
+              <button
+                onClick={() => connectors[0] && connect({ connector: connectors[0] })}
+                style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 700, fontSize: 19, color: "#fff", background: "linear-gradient(180deg,#5fa83f,#357f2f)", border: "none", padding: "16px 40px", borderRadius: 18, cursor: "pointer", boxShadow: "0 10px 24px -6px rgba(53,107,44,.6),inset 0 2px 0 rgba(255,255,255,.25)" }}>
+                👛 Connect Wallet
+              </button>
+              <p style={{ fontSize: 13, color: "#7a6448", margin: "14px 0 0", fontWeight: 600 }}>Free to play · No gas needed · Built for MiniPay</p>
+            </>
+          )}
 
           <div style={{ display: "flex", justifyContent: "center", gap: 26, marginTop: 30, flexWrap: "wrap" }}>
             {[
