@@ -1,6 +1,6 @@
 "use client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { WagmiProvider, useConnect } from "wagmi";
+import { WagmiProvider, useConnect, useAccount } from "wagmi";
 import { wagmiConfig } from "@/lib/wagmi";
 import { useEffect } from "react";
 
@@ -8,9 +8,12 @@ const queryClient = new QueryClient();
 
 function AutoConnect() {
   const { connect, connectors } = useConnect();
+  const { isConnected } = useAccount();
   useEffect(() => {
-    if (connectors[0]) connect({ connector: connectors[0] });
-  }, [connect, connectors]);
+    if (isConnected) return;
+    const eth = (window as unknown as { ethereum?: { isMiniPay?: boolean } }).ethereum;
+    if (eth?.isMiniPay && connectors[0]) connect({ connector: connectors[0] });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return null;
 }
 
