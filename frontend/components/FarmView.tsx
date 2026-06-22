@@ -1,7 +1,9 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { waitForTransactionReceipt } from "wagmi/actions";
 import { parseUnits } from "viem";
+import { wagmiConfig } from "@/lib/wagmi";
 import { SHAMBA_ADDRESS, SHAMBA_ABI, ERC20_ABI, USDM_ADDRESS, CROP_NAMES, CROP_GROWTH_SECS, CROP_YIELD, CROP_COST_USDM } from "@/lib/contracts";
 import { RenderPlant, CropEmblem } from "./PlantArt";
 
@@ -47,10 +49,14 @@ export default function FarmView() {
     args: [4n], query: { refetchInterval: 60000 },
   });
 
-  const { writeContract, isPending } = useWriteContract();
-  const [pendingTx, setPendingTx]   = useState<`0x${string}` | undefined>();
-  const { isLoading: txLoading }    = useWaitForTransactionReceipt({ hash: pendingTx });
+  const { writeContractAsync, isPending } = useWriteContract();
+  const [pendingTx, setPendingTx]        = useState<`0x${string}` | undefined>();
+  const { isLoading: txLoading, isSuccess: txSuccess } = useWaitForTransactionReceipt({ hash: pendingTx });
   const busy = isPending || txLoading;
+
+  useEffect(() => {
+    if (txSuccess) { refetch(); setPendingTx(undefined); }
+  }, [txSuccess]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!farm) return (
     <div style={{ textAlign: "center", padding: "80px 20px", color: "#8a7256" }}>
@@ -83,31 +89,38 @@ export default function FarmView() {
     setActivity(prev => [{ key: k, icon, bg, text }, ...prev].slice(0, 6));
   }
 
-  function doPlant() {
+  async function doPlant() {
     if (selected === null) return;
-    if (CROP_COST_USDM[cropChoice] > 0) {
-      const amt = parseUnits(CROP_COST_USDM[cropChoice].toFixed(18), 18);
-      writeContract({ address: USDM_ADDRESS as `0x${string}`, abi: ERC20_ABI, functionName: "approve", args: [SHAMBA_ADDRESS, amt] });
-    }
-    writeContract({ address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "plant", args: [selected as unknown as number, cropChoice as unknown as number] });
-    addActivity("🌱", "#eaf5e2", `Planted ${CROP_NAMES[cropChoice]} in plot ${selected + 1}`);
-    setSelected(null);
-    setTimeout(() => refetch(), 3000);
+    try {
+      if (CROP_COST_USDM[cropChoice] > 0) {
+        const amt = parseUnits(CROP_COST_USDM[cropChoice].toFixed(18), 18);
+        const approveHash = await writeContractAsync({ address: USDM_ADDRESS as `0x${string}`, abi: ERC20_ABI, functionName: "approve", args: [SHAMBA_ADDRESS, amt] });
+        await waitForTransactionReceipt(wagmiConfig, { hash: approveHash });
+      }
+      const hash = await writeContractAsync({ address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "plant", args: [selected as unknown as number, cropChoice as unknown as number] });
+      setPendingTx(hash);
+      addActivity("🌱", "#eaf5e2", `Planted ${CROP_NAMES[cropChoice]} in plot ${selected + 1}`);
+      setSelected(null);
+    } catch { /* user rejected or tx failed */ }
   }
 
-  function doWater(i: number) {
-    writeContract({ address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "water", args: [i as unknown as number] });
-    addActivity("💧", "#e3f1fa", `Watered ${CROP_NAMES[cropTypes[i]]}`);
-    setTimeout(() => refetch(), 3000);
+  async function doWater(i: number) {
+    try {
+      const hash = await writeContractAsync({ address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "water", args: [i as unknown as number] });
+      setPendingTx(hash);
+      addActivity("💧", "#e3f1fa", `Watered ${CROP_NAMES[cropTypes[i]]}`);
+    } catch { /* user rejected */ }
   }
 
-  function doHarvest(i: number) {
+  async function doHarvest(i: number) {
     const yld = CROP_YIELD[cropTypes[i]];
     setFloats(f => ({ ...f, [i]: "+" + yld }));
     setTimeout(() => setFloats(f => { const n = { ...f }; delete n[i]; return n; }), 1100);
-    writeContract({ address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "harvest", args: [i as unknown as number] });
-    addActivity("🌾", "#fbf0d4", `Harvested ${CROP_NAMES[cropTypes[i]]} +${yld} pts`);
-    setTimeout(() => refetch(), 3000);
+    try {
+      const hash = await writeContractAsync({ address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "harvest", args: [i as unknown as number] });
+      setPendingTx(hash);
+      addActivity("🌾", "#fbf0d4", `Harvested ${CROP_NAMES[cropTypes[i]]} +${yld} pts`);
+    } catch { /* user rejected */ }
   }
 
   const medals = ["🥇", "🥈", "🥉", "4th", "5th"];
