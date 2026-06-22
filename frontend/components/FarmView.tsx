@@ -53,7 +53,7 @@ export default function FarmView() {
 
   const { data: topData } = useReadContract({
     address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "getTopFarmers",
-    args: [4n], query: { refetchInterval: 60000 },
+    args: [10n], query: { refetchInterval: 60000 },
   });
 
   const { writeContractAsync, isPending } = useWriteContract();
@@ -84,8 +84,9 @@ export default function FarmView() {
     ? chainAnchor.current.ts + Math.floor((Date.now() - chainAnchor.current.at) / 1000)
     : Math.floor(Date.now() / 1000);
 
-  const topAddrs  = topData ? (topData as readonly unknown[])[0] as string[] : [];
-  const topScores = topData ? (topData as readonly unknown[])[1] as bigint[] : [];
+  const topAddrs   = topData ? (topData as readonly unknown[])[0] as string[] : [];
+  const topScores  = topData ? (topData as readonly unknown[])[1] as bigint[] : [];
+  const myMiniRank = address ? topAddrs.findIndex(a => a.toLowerCase() === address.toLowerCase()) : -1;
 
   const fmtScore = (v: bigint) => Number(v).toLocaleString();
 
@@ -286,12 +287,36 @@ export default function FarmView() {
                 return (
                   <div key={addr} style={{ display: "flex", alignItems: "center", gap: 9, padding: "7px 9px", borderRadius: 11, background: isMe ? "#eef8e6" : "transparent" }}>
                     <div style={{ width: 22, textAlign: "center", fontWeight: 800, fontSize: 13 }}>{medals[i]}</div>
-                    <div style={{ width: 26, height: 26, borderRadius: 8, background: AVATAR_COLORS[i % AVATAR_COLORS.length], display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 11, fontWeight: 800 }}>{addr[2].toUpperCase()}</div>
-                    <div style={{ flex: 1, fontSize: 12, fontWeight: 700, color: "#3a2e23", fontFamily: "ui-monospace,monospace" }}>{addr.slice(0,6)}…{addr.slice(-4)}{isMe ? " (you)" : ""}</div>
+                    <div style={{ width: 26, height: 26, borderRadius: 8, background: isMe ? "#2f6b34" : AVATAR_COLORS[i % AVATAR_COLORS.length], display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 11, fontWeight: 800 }}>{addr[2].toUpperCase()}</div>
+                    <div style={{ flex: 1, fontSize: 12, fontWeight: 700, color: isMe ? "#2f6b34" : "#3a2e23", fontFamily: "ui-monospace,monospace" }}>{addr.slice(0,6)}…{addr.slice(-4)}{isMe ? " (you)" : ""}</div>
                     <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 13, color: "#2f6b34" }}>{topScores[i] != null ? fmtScore(topScores[i]) : "0"}</div>
                   </div>
                 );
               })}
+              {/* Show user's rank when outside top 4 */}
+              {address && myMiniRank >= 4 && (
+                <>
+                  <div style={{ textAlign: "center", fontSize: 13, color: "#c8b89a", letterSpacing: 3 }}>· · ·</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "7px 9px", borderRadius: 11, background: "#eef8e6" }}>
+                    <div style={{ width: 22, textAlign: "center", fontWeight: 800, fontSize: 12, color: "#2f6b34" }}>#{myMiniRank + 1}</div>
+                    <div style={{ width: 26, height: 26, borderRadius: 8, background: "#2f6b34", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 11, fontWeight: 800 }}>{address[2].toUpperCase()}</div>
+                    <div style={{ flex: 1, fontSize: 12, fontWeight: 700, color: "#2f6b34", fontFamily: "ui-monospace,monospace" }}>{address.slice(0,6)}…{address.slice(-4)} (you)</div>
+                    <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 13, color: "#2f6b34" }}>{fmtScore(topScores[myMiniRank] ?? 0n)}</div>
+                  </div>
+                </>
+              )}
+              {/* User outside top 10 */}
+              {address && myMiniRank === -1 && myScore > 0 && (
+                <>
+                  <div style={{ textAlign: "center", fontSize: 13, color: "#c8b89a", letterSpacing: 3 }}>· · ·</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "7px 9px", borderRadius: 11, background: "#eef8e6" }}>
+                    <div style={{ width: 22, textAlign: "center", fontWeight: 800, fontSize: 12, color: "#8a7256" }}>—</div>
+                    <div style={{ width: 26, height: 26, borderRadius: 8, background: "#2f6b34", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 11, fontWeight: 800 }}>{address[2].toUpperCase()}</div>
+                    <div style={{ flex: 1, fontSize: 12, fontWeight: 700, color: "#2f6b34", fontFamily: "ui-monospace,monospace" }}>{address.slice(0,6)}…{address.slice(-4)} (you)</div>
+                    <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 13, color: "#2f6b34" }}>{myScore.toLocaleString()}</div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}

@@ -12,7 +12,7 @@ export default function Leaderboard() {
 
   const { data: topData, refetch } = useReadContract({
     address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "getTopFarmers",
-    args: [10n], query: { refetchInterval: 30000 },
+    args: [50n], query: { refetchInterval: 30000 },
   });
   const { data: myFarm } = useReadContract({
     address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "farms",
@@ -30,6 +30,11 @@ export default function Leaderboard() {
   const myScore    = myFarm  ? (myFarm  as readonly unknown[])[1] as bigint : 0n;
   const myHarvests = myFarm  ? Number((myFarm as readonly unknown[])[0]) : 0;
 
+  const myRank = address ? topAddrs.findIndex(a => a.toLowerCase() === address.toLowerCase()) : -1;
+  // myRank is 0-indexed; -1 means outside top 50
+  const displayAddrs  = topAddrs.slice(0, 10);
+  const displayScores = topScores.slice(0, 10);
+
   const top3 = topAddrs.slice(0, 3);
   const podiumOrder = top3.length >= 2 ? [1, 0, 2].map(i => top3[i]).filter(Boolean) : top3;
   const podiumRanks = top3.length >= 2 ? [1, 0, 2].filter(i => i < top3.length) : [0, 1, 2].filter(i => i < top3.length);
@@ -44,10 +49,16 @@ export default function Leaderboard() {
       {/* My stats */}
       {address && (
         <div style={{ background: "#fffaf2", border: "1px solid #ece0cc", borderRadius: 20, padding: 16 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 22, color: "#4a9ed1" }}>
+                {myRank >= 0 ? `#${myRank + 1}` : "—"}
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#8a7256", letterSpacing: ".04em" }}>RANK</div>
+            </div>
             <div style={{ textAlign: "center" }}>
               <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 22, color: "#2f6b34" }}>{Number(myScore).toLocaleString()}</div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#8a7256", letterSpacing: ".04em" }}>YOUR SCORE</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#8a7256", letterSpacing: ".04em" }}>SCORE</div>
             </div>
             <div style={{ textAlign: "center" }}>
               <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 22, color: "#9a6a14" }}>{myHarvests}</div>
@@ -98,20 +109,52 @@ export default function Leaderboard() {
             <div style={{ fontSize: 12, color: "#8a7256", marginTop: 4 }}>Be the first to create a farm and top the board!</div>
           </div>
         ) : (
-          topAddrs.map((addr, i) => {
-            const isMe = addr.toLowerCase() === address?.toLowerCase();
-            return (
-              <div key={addr} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderBottom: "1px solid #f1e7d6", background: isMe ? "#eef8e6" : "transparent" }}>
-                <div style={{ width: 26, textAlign: "center", fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 15, color: "#8a7256" }}>{i < 3 ? MEDALS[i] : i + 1}</div>
-                <div style={{ width: 34, height: 34, borderRadius: 10, background: AVATAR_COLORS[i % AVATAR_COLORS.length], display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 13, fontWeight: 800 }}>{addr[2].toUpperCase()}</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: isMe ? "#2f6b34" : "#3a2e23", fontFamily: "ui-monospace,monospace" }}>{addr.slice(0,6)}…{addr.slice(-4)}</div>
-                  {isMe && <div style={{ fontSize: 10, fontWeight: 700, color: "#357f2f", letterSpacing: ".04em" }}>YOU</div>}
+          <>
+            {displayAddrs.map((addr, i) => {
+              const isMe = addr.toLowerCase() === address?.toLowerCase();
+              return (
+                <div key={addr} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderBottom: "1px solid #f1e7d6", background: isMe ? "#eef8e6" : "transparent" }}>
+                  <div style={{ width: 26, textAlign: "center", fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 15, color: "#8a7256" }}>{i < 3 ? MEDALS[i] : i + 1}</div>
+                  <div style={{ width: 34, height: 34, borderRadius: 10, background: AVATAR_COLORS[i % AVATAR_COLORS.length], display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 13, fontWeight: 800 }}>{addr[2].toUpperCase()}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: isMe ? "#2f6b34" : "#3a2e23", fontFamily: "ui-monospace,monospace" }}>{addr.slice(0,6)}…{addr.slice(-4)}</div>
+                    {isMe && <div style={{ fontSize: 10, fontWeight: 700, color: "#357f2f", letterSpacing: ".04em" }}>YOU</div>}
+                  </div>
+                  <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 16, color: "#2f6b34" }}>{displayScores[i]?.toString() ?? "0"} <span style={{ fontSize: 11, color: "#8a7256" }}>pts</span></div>
                 </div>
-                <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 16, color: "#2f6b34" }}>{topScores[i]?.toString() ?? "0"} <span style={{ fontSize: 11, color: "#8a7256" }}>pts</span></div>
-              </div>
-            );
-          })
+              );
+            })}
+            {/* Show user's row when outside top 10 */}
+            {address && myRank >= 10 && (
+              <>
+                <div style={{ padding: "6px 16px", textAlign: "center", fontSize: 16, color: "#c8b89a", letterSpacing: 4 }}>· · ·</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: "#eef8e6", borderTop: "1px solid #cfe7bf" }}>
+                  <div style={{ width: 26, textAlign: "center", fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 15, color: "#2f6b34" }}>{myRank + 1}</div>
+                  <div style={{ width: 34, height: 34, borderRadius: 10, background: "#2f6b34", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 13, fontWeight: 800 }}>{address[2].toUpperCase()}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#2f6b34", fontFamily: "ui-monospace,monospace" }}>{address.slice(0,6)}…{address.slice(-4)}</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#357f2f", letterSpacing: ".04em" }}>YOU</div>
+                  </div>
+                  <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 16, color: "#2f6b34" }}>{Number(myScore).toLocaleString()} <span style={{ fontSize: 11, color: "#8a7256" }}>pts</span></div>
+                </div>
+              </>
+            )}
+            {/* Outside top 50 */}
+            {address && myRank === -1 && Number(myScore) > 0 && (
+              <>
+                <div style={{ padding: "6px 16px", textAlign: "center", fontSize: 16, color: "#c8b89a", letterSpacing: 4 }}>· · ·</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: "#eef8e6", borderTop: "1px solid #cfe7bf" }}>
+                  <div style={{ width: 26, textAlign: "center", fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 15, color: "#8a7256" }}>—</div>
+                  <div style={{ width: 34, height: 34, borderRadius: 10, background: "#2f6b34", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 13, fontWeight: 800 }}>{address[2].toUpperCase()}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#2f6b34", fontFamily: "ui-monospace,monospace" }}>{address.slice(0,6)}…{address.slice(-4)}</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#357f2f", letterSpacing: ".04em" }}>YOU</div>
+                  </div>
+                  <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 16, color: "#2f6b34" }}>{Number(myScore).toLocaleString()} <span style={{ fontSize: 11, color: "#8a7256" }}>pts</span></div>
+                </div>
+              </>
+            )}
+          </>
         )}
       </div>
 
