@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useAccount, useConnect, useReadContract } from "wagmi";
+import { useAccount, useConnect, useDisconnect, useReadContract } from "wagmi";
 import CreateFarm from "@/components/CreateFarm";
 import FarmView from "@/components/FarmView";
 import Leaderboard from "@/components/Leaderboard";
@@ -14,6 +14,7 @@ type Tab = "farm" | "board" | "friends";
 export default function Home() {
   const { isConnected, address } = useAccount();
   const { connect, connectors } = useConnect();
+  const { disconnect } = useDisconnect();
   const [tab, setTab] = useState<Tab>("farm");
 
   function switchTab(t: Tab) {
@@ -142,10 +143,18 @@ export default function Home() {
                 <div style={{ height: "100%", width: xpPct + "%", background: "linear-gradient(90deg,#6db04e,#357f2f)", borderRadius: 4, transition: "width .5s ease" }} />
               </div>
             </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4, background: "#f0e3cd", padding: "4px 10px 4px 6px", borderRadius: 11 }} title={address}>
+            <div style={{ display: "flex", alignItems: "center", gap: 4, background: "#f0e3cd", padding: "4px 10px 4px 6px", borderRadius: 11 }} title={address}>
               <div style={{ width: 24, height: 24, borderRadius: 8, background: "linear-gradient(135deg,#8a5e3b,#5e3d24)", flexShrink: 0 }} />
               <span style={{ fontSize: 12, fontWeight: 700, color: "#7a6448", fontFamily: "ui-monospace,monospace" }}>{walletShort}</span>
             </div>
+            <button
+              onClick={() => disconnect()}
+              style={{ fontSize: 11, fontWeight: 700, color: "#a08a6e", background: "none", border: "1px solid #e3d4ba", padding: "5px 10px", borderRadius: 9, cursor: "pointer", whiteSpace: "nowrap", transition: "color .15s,border-color .15s" }}
+              onMouseEnter={e => { e.currentTarget.style.color = "#c0392b"; e.currentTarget.style.borderColor = "rgba(192,57,43,.4)"; }}
+              onMouseLeave={e => { e.currentTarget.style.color = "#a08a6e"; e.currentTarget.style.borderColor = "#e3d4ba"; }}
+            >
+              Disconnect
+            </button>
           </div>
         </div>
       </div>
