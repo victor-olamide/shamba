@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { SHAMBA_ADDRESS, SHAMBA_ABI } from "@/lib/contracts";
 
@@ -23,10 +23,18 @@ export default function Friends() {
     query: { enabled: !!address },
   });
 
-  const { writeContract, isPending } = useWriteContract();
-  const [pendingTx, setPendingTx]   = useState<`0x${string}` | undefined>();
-  const { isLoading: txLoading }    = useWaitForTransactionReceipt({ hash: pendingTx });
+  const { writeContractAsync, isPending } = useWriteContract();
+  const [pendingTx, setPendingTx]        = useState<`0x${string}` | undefined>();
+  const { isLoading: txLoading, isSuccess: txSuccess } = useWaitForTransactionReceipt({ hash: pendingTx });
   const busy = isPending || txLoading;
+
+  useEffect(() => {
+    if (txSuccess) {
+      setVisited(true);
+      setPendingTx(undefined);
+      setTimeout(() => setVisited(false), 3000);
+    }
+  }, [txSuccess]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const myScore = myFarm ? Number((myFarm as readonly unknown[])[1] as bigint) : 0;
   const refCode = address ?? "";
@@ -37,14 +45,15 @@ export default function Friends() {
     setTimeout(() => setCopied(false), 1500);
   }
 
-  function doVisit() {
+  async function doVisit() {
     const addr = visitAddr.trim();
     if (!addr.startsWith("0x") || addr.length < 42) return;
     if (addr.toLowerCase() === address?.toLowerCase()) return;
-    writeContract({ address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "visitFriend", args: [addr as `0x${string}`] });
-    setVisitAddr("");
-    setVisited(true);
-    setTimeout(() => setVisited(false), 3000);
+    try {
+      const hash = await writeContractAsync({ address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "visitFriend", args: [addr as `0x${string}`] });
+      setPendingTx(hash);
+      setVisitAddr("");
+    } catch { /* user rejected */ }
   }
 
   return (
