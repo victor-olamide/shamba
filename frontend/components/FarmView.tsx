@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useBlock } from "wagmi";
 import { waitForTransactionReceipt } from "wagmi/actions";
 import { parseUnits } from "viem";
 import { wagmiConfig } from "@/lib/wagmi";
@@ -26,6 +26,13 @@ export default function FarmView() {
   const [activity, setActivity]   = useState<ActivityItem[]>([{ key: 0, icon: "🌾", bg: "#fbf0d4", text: "Welcome to your Shamba!" }]);
   const actKey = useRef(1);
   const [, setTick] = useState(0);
+  const chainAnchor = useRef({ ts: 0, at: 0 });
+
+  // Anchor timers to chain time — machine clock can drift from blockchain time
+  const { data: latestBlock } = useBlock({ watch: true });
+  useEffect(() => {
+    if (latestBlock) chainAnchor.current = { ts: Number(latestBlock.timestamp), at: Date.now() };
+  }, [latestBlock]);
 
   useEffect(() => {
     const t = setInterval(() => setTick(n => n + 1), 1000);
@@ -73,7 +80,9 @@ export default function FarmView() {
   const level   = Math.floor(myScore / 150) + 1;
   const xpInto  = myScore % 150;
   const xpPct   = Math.round((xpInto / 150) * 100);
-  const now     = Math.floor(Date.now() / 1000);
+  const now = chainAnchor.current.ts > 0
+    ? chainAnchor.current.ts + Math.floor((Date.now() - chainAnchor.current.at) / 1000)
+    : Math.floor(Date.now() / 1000);
 
   const topAddrs  = topData ? (topData as readonly unknown[])[0] as string[] : [];
   const topScores = topData ? (topData as readonly unknown[])[1] as bigint[] : [];
