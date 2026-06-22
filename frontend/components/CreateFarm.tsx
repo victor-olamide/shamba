@@ -1,12 +1,17 @@
 "use client";
-import { useState } from "react";
-import { useWriteContract } from "wagmi";
+import { useState, useEffect } from "react";
+import { useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { SHAMBA_ADDRESS, SHAMBA_ABI } from "@/lib/contracts";
 import { RenderPlant } from "./PlantArt";
 
-export default function CreateFarm() {
+export default function CreateFarm({ onCreated }: { onCreated?: () => void }) {
   const [referrer, setReferrer] = useState("");
-  const { writeContract, isPending } = useWriteContract();
+  const { writeContract, isPending, data: txHash } = useWriteContract();
+  const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({ hash: txHash });
+
+  useEffect(() => {
+    if (txConfirmed) onCreated?.();
+  }, [txConfirmed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleCreate() {
     writeContract({
@@ -66,9 +71,9 @@ export default function CreateFarm() {
             <div style={{ fontSize: 12, color: "#a08a6e", marginTop: 7 }}>Your friend earns <b style={{ color: "#357f2f" }}>10%</b> of your harvest score.</div>
           </div>
 
-          <button onClick={handleCreate} disabled={isPending}
-            style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 700, fontSize: 18, color: "#fff", background: isPending ? "#efe3cd" : "linear-gradient(180deg,#5fa83f,#357f2f)", border: "none", padding: 15, borderRadius: 16, cursor: isPending ? "not-allowed" : "pointer", boxShadow: isPending ? "none" : "0 10px 22px -6px rgba(53,107,44,.55)" }}>
-            {isPending ? "Creating farm…" : "🌱 Claim my farm"}
+          <button onClick={handleCreate} disabled={isPending || !!txHash}
+            style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 700, fontSize: 18, color: "#fff", background: (isPending || txHash) ? "#efe3cd" : "linear-gradient(180deg,#5fa83f,#357f2f)", border: "none", padding: 15, borderRadius: 16, cursor: (isPending || txHash) ? "not-allowed" : "pointer", boxShadow: (isPending || txHash) ? "none" : "0 10px 22px -6px rgba(53,107,44,.55)" }}>
+            {isPending ? "Confirm in wallet…" : txHash ? "Confirming on-chain…" : "🌱 Claim my farm"}
           </button>
         </div>
       </div>

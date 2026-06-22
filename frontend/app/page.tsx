@@ -21,7 +21,7 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  const { data: farmData } = useReadContract({
+  const { data: farmData, refetch: refetchFarm } = useReadContract({
     address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "farms",
     args: address ? [address] : undefined,
     query: { enabled: !!address },
@@ -102,7 +102,7 @@ export default function Home() {
   if (!hasFarm) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "32px 18px", background: "radial-gradient(120% 80% at 50% -10%,#fef4de 0%,#f6e7cc 46%,#eedaba 100%)" }}>
-        <CreateFarm />
+        <CreateFarm onCreated={refetchFarm} />
       </div>
     );
   }
