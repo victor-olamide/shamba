@@ -133,6 +133,12 @@ export default function FarmView() {
     } catch { /* user rejected */ }
   }
 
+  async function doHarvestAll() {
+    for (let i = 0; i < 6; i++) {
+      if (states[i] === 2) await doHarvest(i);
+    }
+  }
+
   const medals = ["🥇", "🥈", "🥉", "4th", "5th"];
 
   return (
@@ -178,8 +184,16 @@ export default function FarmView() {
               {readyCount > 0 ? `${readyCount} plot${readyCount > 1 ? "s" : ""} ready to harvest!` : emptyCount > 0 ? `Tap an empty plot to plant · ${emptyCount} open` : "All plots growing — check back soon!"}
             </p>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 7, background: "#fffaf2", border: "1px solid #ece0cc", padding: "7px 12px", borderRadius: 12, fontSize: 12, fontWeight: 700, color: "#7a6448", whiteSpace: "nowrap" }}>
-            🌱 {growingCount} growing · ✅ {readyCount} ready
+          <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
+            <div style={{ background: "#fffaf2", border: "1px solid #ece0cc", padding: "7px 12px", borderRadius: 12, fontSize: 12, fontWeight: 700, color: "#7a6448", whiteSpace: "nowrap" }}>
+              🌱 {growingCount} growing · ✅ {readyCount} ready
+            </div>
+            {readyCount > 1 && (
+              <button onClick={doHarvestAll} disabled={busy}
+                style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 12, border: "none", padding: "7px 14px", borderRadius: 12, background: "linear-gradient(180deg,#f0bf4a,#d99417)", color: "#5a3c08", cursor: busy ? "not-allowed" : "pointer", whiteSpace: "nowrap", animation: "pulseGlow 1.6s ease-in-out infinite" }}>
+                🌾 Harvest All ({readyCount})
+              </button>
+            )}
           </div>
         </div>
 
