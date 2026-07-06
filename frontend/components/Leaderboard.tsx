@@ -43,7 +43,10 @@ export default function Leaderboard() {
     <div className="lb-grid">
       <div style={{ textAlign: "center", marginBottom: 8 }}>
         <h2 style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 30, color: "#2f6b34", margin: 0 }}>🏆 Leaderboard</h2>
-        <p style={{ fontSize: 13, color: "#8a7256", margin: "4px 0 0" }}>Compete for the highest farm score on Celo</p>
+        <p style={{ fontSize: 13, color: "#8a7256", margin: "4px 0 0" }}>
+          Compete for the highest farm score on Celo
+          {topAddrs.length > 0 && <span style={{ marginLeft: 8, background: "#eaf5e2", color: "#357f2f", fontWeight: 700, padding: "2px 9px", borderRadius: 20, fontSize: 12 }}>{topAddrs.length} farmer{topAddrs.length !== 1 ? "s" : ""}</span>}
+        </p>
       </div>
 
       {/* My stats */}
@@ -160,19 +163,27 @@ export default function Leaderboard() {
 
       {/* Crop yields */}
       <div style={{ background: "#fffaf2", border: "1px solid #ece0cc", borderRadius: 20, padding: 16 }}>
-        <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 16, color: "#3a2e23", marginBottom: 10 }}>🌱 Crop yields</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(120px,1fr))", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+          <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 16, color: "#3a2e23" }}>🌱 Crop reference</div>
+          <div style={{ fontSize: 11, color: "#8a7256", fontWeight: 600 }}>💧 watering cuts grow time by 25%</div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(128px,1fr))", gap: 8 }}>
           {CROP_NAMES.map((name, i) => {
-            const mins = CROP_GROWTH_SECS[i] >= 3600
-              ? `${Math.floor(CROP_GROWTH_SECS[i] / 3600)}h`
-              : `${Math.floor(CROP_GROWTH_SECS[i] / 60)}m`;
+            const secs = CROP_GROWTH_SECS[i];
+            const rawLabel = secs >= 3600 ? `${Math.floor(secs / 3600)}h` : `${Math.floor(secs / 60)}m`;
+            const wateredSecs = Math.floor(secs * 0.75);
+            const watLabel = wateredSecs >= 3600 ? `${Math.floor(wateredSecs / 3600)}h${Math.floor((wateredSecs % 3600) / 60) > 0 ? Math.floor((wateredSecs % 3600) / 60) + "m" : ""}` : `${Math.floor(wateredSecs / 60)}m`;
             return (
-              <div key={name} style={{ display: "flex", alignItems: "center", gap: 9, background: "#f7f0e2", border: "1px solid #e8dac2", borderRadius: 12, padding: "9px 11px" }}>
-                <div style={{ fontSize: 18, flexShrink: 0 }}>{CROP_EMOJI[i]}</div>
-                <div>
-                  <div style={{ fontSize: 12.5, fontWeight: 700, color: "#3a2e23" }}>{name}</div>
-                  <div style={{ fontSize: 11, color: "#357f2f", fontWeight: 700 }}>+{CROP_YIELD[i]} pts · {mins}{CROP_COST_USDM[i] > 0 ? ` · ${CROP_COST_USDM[i]} USDM` : " · Free"}</div>
+              <div key={name} style={{ background: "#f7f0e2", border: "1px solid #e8dac2", borderRadius: 12, padding: "10px 11px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 5 }}>
+                  <div style={{ fontSize: 20 }}>{CROP_EMOJI[i]}</div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "#3a2e23" }}>{name}</div>
                 </div>
+                <div style={{ fontSize: 11, color: "#357f2f", fontWeight: 700 }}>+{CROP_YIELD[i]} pts</div>
+                <div style={{ fontSize: 10.5, color: "#8a7256", marginTop: 2 }}>{rawLabel} <span style={{ color: "#4a9ed1" }}>→ 💧{watLabel}</span></div>
+                {CROP_COST_USDM[i] > 0
+                  ? <div style={{ fontSize: 10, color: "#c8881a", fontWeight: 700, marginTop: 2 }}>Costs {CROP_COST_USDM[i]} cUSD</div>
+                  : <div style={{ fontSize: 10, color: "#5fa83f", fontWeight: 700, marginTop: 2 }}>Free seed</div>}
               </div>
             );
           })}
