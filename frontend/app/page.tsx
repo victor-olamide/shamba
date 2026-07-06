@@ -83,19 +83,21 @@ export default function Home() {
                 style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 700, fontSize: 19, color: "#fff", background: "linear-gradient(180deg,#5fa83f,#357f2f)", border: "none", padding: "16px 40px", borderRadius: 18, cursor: "pointer", boxShadow: "0 10px 24px -6px rgba(53,107,44,.6),inset 0 2px 0 rgba(255,255,255,.25)" }}>
                 👛 Connect Wallet
               </button>
-              <p style={{ fontSize: 13, color: "#7a6448", margin: "14px 0 0", fontWeight: 600 }}>Free to play · No gas needed · Built for MiniPay</p>
+              <p style={{ fontSize: 13, color: "#7a6448", margin: "14px 0 0", fontWeight: 600 }}>Free to play · Gas fees under $0.01 · Built for MiniPay</p>
             </>
           )}
 
-          <div style={{ display: "flex", justifyContent: "center", gap: 26, marginTop: 30, flexWrap: "wrap" }}>
+          {/* How to play */}
+          <div style={{ marginTop: 32, display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, textAlign: "left" }}>
             {[
-              { n: "12,480", label: "FARMS PLANTED",    c: "#2f6b34" },
-              { n: "3.2M",   label: "CROPS HARVESTED",  c: "#c8881a" },
-              { n: "5",      label: "CROPS TO MASTER",  c: "#4a9ed1" },
-            ].map((s, i) => (
-              <div key={i} style={{ textAlign: "center" }}>
-                <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 24, color: s.c }}>{s.n}</div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#8a7256", letterSpacing: ".04em" }}>{s.label}</div>
+              { step: "1", icon: "🌱", title: "Claim your farm", desc: "One free transaction on Celo to mint your 6 plots." },
+              { step: "2", icon: "💧", title: "Plant & water", desc: "Pick a crop, plant it, water it to grow 25% faster." },
+              { step: "3", icon: "🏆", title: "Harvest & rank", desc: "Harvest to earn score points and climb the leaderboard." },
+            ].map(({ step, icon, title, desc }) => (
+              <div key={step} style={{ background: "rgba(255,255,255,.55)", border: "1px solid rgba(255,255,255,.7)", borderRadius: 16, padding: "12px 13px" }}>
+                <div style={{ fontSize: 22, marginBottom: 5 }}>{icon}</div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: "#2f6b34", marginBottom: 3 }}>{title}</div>
+                <div style={{ fontSize: 11, color: "#7a6448", lineHeight: 1.4 }}>{desc}</div>
               </div>
             ))}
           </div>
