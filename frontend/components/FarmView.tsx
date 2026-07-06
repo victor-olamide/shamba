@@ -7,7 +7,7 @@ import { wagmiConfig } from "@/lib/wagmi";
 import { SHAMBA_ADDRESS, SHAMBA_ABI, ERC20_ABI, USDM_ADDRESS, CROP_NAMES, CROP_GROWTH_SECS, CROP_YIELD, CROP_COST_USDM } from "@/lib/contracts";
 import { RenderPlant, CropEmblem } from "./PlantArt";
 
-type ActivityItem = { key: number; icon: string; bg: string; text: string };
+type ActivityItem = { key: number; icon: string; bg: string; text: string; txHash?: string };
 const AVATAR_COLORS = ["#e0623e", "#4a9ed1", "#9a6ad1", "#5fa83f", "#d99417", "#3fa3a3"];
 
 function fmtRemain(secs: number) {
@@ -94,9 +94,9 @@ export default function FarmView() {
   const readyCount   = states.filter(s => s === 2).length;
   const emptyCount   = states.filter(s => s === 0).length;
 
-  function addActivity(icon: string, bg: string, text: string) {
+  function addActivity(icon: string, bg: string, text: string, txHash?: string) {
     const k = actKey.current++;
-    setActivity(prev => [{ key: k, icon, bg, text }, ...prev].slice(0, 6));
+    setActivity(prev => [{ key: k, icon, bg, text, txHash }, ...prev].slice(0, 6));
   }
 
   async function doPlant() {
@@ -109,7 +109,7 @@ export default function FarmView() {
       }
       const hash = await writeContractAsync({ address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "plant", args: [selected as unknown as number, cropChoice as unknown as number] });
       setPendingTx(hash);
-      addActivity("🌱", "#eaf5e2", `Planted ${CROP_NAMES[cropChoice]} in plot ${selected + 1}`);
+      addActivity("🌱", "#eaf5e2", `Planted ${CROP_NAMES[cropChoice]} in plot ${selected + 1}`, hash);
       setSelected(null);
     } catch { /* user rejected or tx failed */ }
   }
@@ -118,7 +118,7 @@ export default function FarmView() {
     try {
       const hash = await writeContractAsync({ address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "water", args: [i as unknown as number] });
       setPendingTx(hash);
-      addActivity("💧", "#e3f1fa", `Watered ${CROP_NAMES[cropTypes[i]]}`);
+      addActivity("💧", "#e3f1fa", `Watered ${CROP_NAMES[cropTypes[i]]}`, hash);
     } catch { /* user rejected */ }
   }
 
@@ -129,7 +129,7 @@ export default function FarmView() {
     try {
       const hash = await writeContractAsync({ address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "harvest", args: [i as unknown as number] });
       setPendingTx(hash);
-      addActivity("🌾", "#fbf0d4", `Harvested ${CROP_NAMES[cropTypes[i]]} +${yld} pts`);
+      addActivity("🌾", "#fbf0d4", `Harvested ${CROP_NAMES[cropTypes[i]]} +${yld} pts`, hash);
     } catch { /* user rejected */ }
   }
 
@@ -338,7 +338,10 @@ export default function FarmView() {
             ) : activity.map(a => (
               <div key={a.key} style={{ display: "flex", alignItems: "center", gap: 9 }}>
                 <div style={{ width: 28, height: 28, borderRadius: 9, background: a.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>{a.icon}</div>
-                <div style={{ flex: 1, fontSize: 12.5, color: "#5a4631", lineHeight: 1.3 }}>{a.text}</div>
+                <div style={{ flex: 1, lineHeight: 1.3 }}>
+                  <div style={{ fontSize: 12.5, color: "#5a4631" }}>{a.text}</div>
+                  {a.txHash && <a href={`https://celoscan.io/tx/${a.txHash}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: 10, color: "#357f2f", fontWeight: 700, textDecoration: "none" }}>View on Celo Explorer ↗</a>}
+                </div>
               </div>
             ))}
           </div>
