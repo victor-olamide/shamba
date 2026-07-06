@@ -218,6 +218,9 @@ export default function FarmView() {
                   )}
                   {!isEmpty && <div style={{ position: "absolute", top: 7, right: 7, background: "rgba(58,46,35,.62)", color: "#ffe8b0", fontSize: 10, fontWeight: 800, padding: "2px 7px", borderRadius: 7, backdropFilter: "blur(2px)", fontFamily: "ui-monospace,monospace" }}>{isReady ? "Ready!" : fmtRemain(remain)}</div>}
                   {isGrowing && (
+                    <div style={{ position: "absolute", bottom: 9, right: 7, background: "rgba(58,46,35,.55)", color: "#c8f0a0", fontSize: 9, fontWeight: 800, padding: "1px 5px", borderRadius: 5, backdropFilter: "blur(2px)", fontFamily: "ui-monospace,monospace" }}>{Math.round(progress * 100)}%</div>
+                  )}
+                  {isGrowing && (
                     <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 4, background: "rgba(0,0,0,.3)" }}>
                       <div style={{ height: "100%", width: `${Math.round(progress * 100)}%`, background: "linear-gradient(90deg,#5fa83f,#f0bf4a)", borderRadius: "0 3px 0 0", transition: "width 1s linear" }} />
                     </div>
