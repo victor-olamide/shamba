@@ -6,8 +6,13 @@ import { RenderPlant } from "./PlantArt";
 
 export default function CreateFarm({ onCreated }: { onCreated?: () => void }) {
   const [referrer, setReferrer] = useState("");
-  const { writeContract, isPending, data: txHash } = useWriteContract();
-  const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({ hash: txHash });
+  const { writeContract, isPending, data: txHash, reset } = useWriteContract();
+  const { isSuccess: txConfirmed, isError: txFailed } = useWaitForTransactionReceipt({ hash: txHash });
+  const [errMsg, setErrMsg] = useState("");
+
+  useEffect(() => {
+    if (txFailed) setErrMsg("Transaction failed — please try again.");
+  }, [txFailed]);
 
   useEffect(() => {
     if (!txConfirmed || !onCreated) return;
@@ -77,9 +82,15 @@ export default function CreateFarm({ onCreated }: { onCreated?: () => void }) {
             <div style={{ fontSize: 12, color: "#a08a6e", marginTop: 7 }}>Your friend earns <b style={{ color: "#357f2f" }}>10%</b> of your harvest score.</div>
           </div>
 
-          <button onClick={handleCreate} disabled={isPending || !!txHash}
-            style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 700, fontSize: 18, color: "#fff", background: (isPending || txHash) ? "#efe3cd" : "linear-gradient(180deg,#5fa83f,#357f2f)", border: "none", padding: 15, borderRadius: 16, cursor: (isPending || txHash) ? "not-allowed" : "pointer", boxShadow: (isPending || txHash) ? "none" : "0 10px 22px -6px rgba(53,107,44,.55)" }}>
-            {isPending ? "Confirm in wallet…" : txHash ? "Confirming on-chain…" : "🌱 Claim my farm"}
+          {errMsg && (
+            <div style={{ background: "rgba(192,57,43,.1)", border: "1px solid rgba(192,57,43,.3)", borderRadius: 12, padding: "10px 14px", fontSize: 13, color: "#c0392b", fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+              <span>⚠ {errMsg}</span>
+              <button onClick={() => { setErrMsg(""); reset(); }} style={{ background: "none", border: "none", fontSize: 12, fontWeight: 800, color: "#c0392b", cursor: "pointer", textDecoration: "underline", padding: 0 }}>Retry</button>
+            </div>
+          )}
+          <button onClick={handleCreate} disabled={isPending || (!!txHash && !txFailed)}
+            style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 700, fontSize: 18, color: "#fff", background: (isPending || (txHash && !txFailed)) ? "#efe3cd" : "linear-gradient(180deg,#5fa83f,#357f2f)", border: "none", padding: 15, borderRadius: 16, cursor: (isPending || (txHash && !txFailed)) ? "not-allowed" : "pointer", boxShadow: (isPending || (txHash && !txFailed)) ? "none" : "0 10px 22px -6px rgba(53,107,44,.55)" }}>
+            {isPending ? "Confirm in wallet…" : (txHash && !txFailed) ? "Confirming on-chain…" : "🌱 Claim my farm"}
           </button>
         </div>
       </div>
