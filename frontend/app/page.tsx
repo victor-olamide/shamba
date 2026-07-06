@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { useAccount, useConnect, useDisconnect, useReadContract } from "wagmi";
+import { useAccount, useConnect, useDisconnect, useReadContract, useChainId, useSwitchChain } from "wagmi";
+import { celo } from "wagmi/chains";
 import CreateFarm from "@/components/CreateFarm";
 import FarmView from "@/components/FarmView";
 import Leaderboard from "@/components/Leaderboard";
@@ -15,6 +16,9 @@ export default function Home() {
   const { isConnected, address } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
+  const chainId = useChainId();
+  const { switchChain, isPending: switching } = useSwitchChain();
+  const isWrongChain = isConnected && chainId !== celo.id;
   const [tab, setTab] = useState<Tab>("farm");
 
   function switchTab(t: Tab) {
@@ -159,7 +163,20 @@ export default function Home() {
         </div>
       </div>
 
-      <div style={{ maxWidth: 1180, margin: "0 auto", padding: "18px clamp(14px,3vw,26px) 60px" }}>
+      {isWrongChain && (
+        <div style={{ background: "rgba(192,57,43,.1)", borderBottom: "1px solid rgba(192,57,43,.3)", padding: "10px clamp(14px,3vw,26px)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: "#c0392b" }}>⚠ Wrong network — switch to Celo mainnet to play</span>
+          <button
+            onClick={() => switchChain({ chainId: celo.id })}
+            disabled={switching}
+            style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 13, padding: "6px 16px", borderRadius: 10, border: "none", background: "#c0392b", color: "#fff", cursor: switching ? "wait" : "pointer", opacity: switching ? 0.7 : 1 }}
+          >
+            {switching ? "Switching…" : "Switch to Celo"}
+          </button>
+        </div>
+      )}
+
+      <div style={{ maxWidth: 1180, margin: "0 auto", padding: "18px clamp(14px,3vw,26px) 60px", opacity: isWrongChain ? 0.4 : 1, pointerEvents: isWrongChain ? "none" : "auto", transition: "opacity .2s" }}>
         {tab === "farm"    && <FarmView />}
         {tab === "board"   && <Leaderboard />}
         {tab === "friends" && <Friends />}
