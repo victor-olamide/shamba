@@ -51,6 +51,12 @@ export default function FarmView() {
     query: { enabled: !!address, refetchInterval: 15000 },
   });
 
+  const { data: usdmBalance } = useReadContract({
+    address: USDM_ADDRESS as `0x${string}`, abi: ERC20_ABI, functionName: "balanceOf",
+    args: address ? [address] : undefined,
+    query: { enabled: !!address },
+  });
+
   const { data: topData } = useReadContract({
     address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "getTopFarmers",
     args: [10n], query: { refetchInterval: 60000 },
@@ -299,10 +305,24 @@ export default function FarmView() {
                 </div>
               ))}
             </div>
-            <button onClick={doPlant} disabled={busy}
-              style={{ width: "100%", marginTop: 12, fontFamily: "'Baloo 2',cursive", fontWeight: 700, fontSize: 16, border: "none", padding: 13, borderRadius: 14, background: busy ? "#efe3cd" : "linear-gradient(180deg,#5fa83f,#357f2f)", color: busy ? "#b89a6a" : "#fff", cursor: busy ? "not-allowed" : "pointer", boxShadow: busy ? "none" : "0 8px 18px -6px rgba(53,107,44,.5)" }}>
-              {busy ? "Confirming…" : CROP_COST_USDM[cropChoice] > 0 ? `🌱 Plant ${CROP_NAMES[cropChoice]} — ${CROP_COST_USDM[cropChoice]} USDM` : `🌱 Plant ${CROP_NAMES[cropChoice]}`}
-            </button>
+            {(() => {
+              const costUsdm = CROP_COST_USDM[cropChoice];
+              const balanceBn = usdmBalance as bigint | undefined;
+              const insufficient = costUsdm > 0 && balanceBn !== undefined && balanceBn < BigInt(Math.round(costUsdm * 1e18));
+              return (
+                <>
+                  {insufficient && (
+                    <div style={{ background: "rgba(192,57,43,.1)", border: "1px solid rgba(192,57,43,.3)", borderRadius: 10, padding: "8px 12px", fontSize: 12, color: "#c0392b", fontWeight: 600 }}>
+                      ⚠ Insufficient cUSD balance — you need {costUsdm} cUSD to plant Golden Wheat
+                    </div>
+                  )}
+                  <button onClick={doPlant} disabled={busy || insufficient}
+                    style={{ width: "100%", marginTop: 8, fontFamily: "'Baloo 2',cursive", fontWeight: 700, fontSize: 16, border: "none", padding: 13, borderRadius: 14, background: busy || insufficient ? "#efe3cd" : "linear-gradient(180deg,#5fa83f,#357f2f)", color: busy || insufficient ? "#b89a6a" : "#fff", cursor: busy || insufficient ? "not-allowed" : "pointer", boxShadow: busy || insufficient ? "none" : "0 8px 18px -6px rgba(53,107,44,.5)" }}>
+                    {busy ? "Confirming…" : costUsdm > 0 ? `🌱 Plant ${CROP_NAMES[cropChoice]} — ${costUsdm} cUSD` : `🌱 Plant ${CROP_NAMES[cropChoice]}`}
+                  </button>
+                </>
+              );
+            })()}
           </div>
         )}
       </div>
