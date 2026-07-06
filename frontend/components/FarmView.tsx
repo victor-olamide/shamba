@@ -217,6 +217,11 @@ export default function FarmView() {
                     </div>
                   )}
                   {!isEmpty && <div style={{ position: "absolute", top: 7, right: 7, background: "rgba(58,46,35,.62)", color: "#ffe8b0", fontSize: 10, fontWeight: 800, padding: "2px 7px", borderRadius: 7, backdropFilter: "blur(2px)", fontFamily: "ui-monospace,monospace" }}>{isReady ? "Ready!" : fmtRemain(remain)}</div>}
+                  {isGrowing && (
+                    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 4, background: "rgba(0,0,0,.3)" }}>
+                      <div style={{ height: "100%", width: `${Math.round(progress * 100)}%`, background: "linear-gradient(90deg,#5fa83f,#f0bf4a)", borderRadius: "0 3px 0 0", transition: "width 1s linear" }} />
+                    </div>
+                  )}
                   {isGrowing && !watered[i] && (
                     <button onClick={e => { e.stopPropagation(); doWater(i); }} disabled={busy}
                       style={{ position: "absolute", bottom: 7, left: "50%", transform: "translateX(-50%)", background: "rgba(74,158,209,.92)", color: "#fff", border: "none", fontSize: 11, fontWeight: 800, padding: "4px 12px", borderRadius: 9, cursor: "pointer", boxShadow: "0 3px 8px -2px rgba(31,110,160,.7)", whiteSpace: "nowrap" }}>
