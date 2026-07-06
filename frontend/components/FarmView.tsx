@@ -58,11 +58,12 @@ export default function FarmView() {
 
   const { writeContractAsync, isPending } = useWriteContract();
   const [pendingTx, setPendingTx]        = useState<`0x${string}` | undefined>();
+  const [activePlot, setActivePlot]      = useState<number | null>(null);
   const { isLoading: txLoading, isSuccess: txSuccess } = useWaitForTransactionReceipt({ hash: pendingTx });
   const busy = isPending || txLoading;
 
   useEffect(() => {
-    if (txSuccess) { refetch(); setPendingTx(undefined); }
+    if (txSuccess) { refetch(); setPendingTx(undefined); setActivePlot(null); }
   }, [txSuccess]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!farm) return (
@@ -115,14 +116,16 @@ export default function FarmView() {
   }
 
   async function doWater(i: number) {
+    setActivePlot(i);
     try {
       const hash = await writeContractAsync({ address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "water", args: [i as unknown as number] });
       setPendingTx(hash);
       addActivity("💧", "#e3f1fa", `Watered ${CROP_NAMES[cropTypes[i]]}`, hash);
-    } catch { /* user rejected */ }
+    } catch { setActivePlot(null); }
   }
 
   async function doHarvest(i: number) {
+    setActivePlot(i);
     const yld = CROP_YIELD[cropTypes[i]];
     setFloats(f => ({ ...f, [i]: "+" + yld }));
     setTimeout(() => setFloats(f => { const n = { ...f }; delete n[i]; return n; }), 1100);
@@ -130,7 +133,7 @@ export default function FarmView() {
       const hash = await writeContractAsync({ address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "harvest", args: [i as unknown as number] });
       setPendingTx(hash);
       addActivity("🌾", "#fbf0d4", `Harvested ${CROP_NAMES[cropTypes[i]]} +${yld} pts`, hash);
-    } catch { /* user rejected */ }
+    } catch { setActivePlot(null); }
   }
 
   async function doHarvestAll() {
@@ -253,15 +256,15 @@ export default function FarmView() {
                     </div>
                   )}
                   {isGrowing && !watered[i] && (
-                    <button onClick={e => { e.stopPropagation(); doWater(i); }} disabled={busy}
-                      style={{ position: "absolute", bottom: 7, left: "50%", transform: "translateX(-50%)", background: "rgba(74,158,209,.92)", color: "#fff", border: "none", fontSize: 11, fontWeight: 800, padding: "4px 12px", borderRadius: 9, cursor: "pointer", boxShadow: "0 3px 8px -2px rgba(31,110,160,.7)", whiteSpace: "nowrap" }}>
-                      💧 Water
+                    <button onClick={e => { e.stopPropagation(); doWater(i); }} disabled={activePlot === i && busy}
+                      style={{ position: "absolute", bottom: 7, left: "50%", transform: "translateX(-50%)", background: "rgba(74,158,209,.92)", color: "#fff", border: "none", fontSize: 11, fontWeight: 800, padding: "4px 12px", borderRadius: 9, cursor: "pointer", boxShadow: "0 3px 8px -2px rgba(31,110,160,.7)", whiteSpace: "nowrap", opacity: activePlot === i && busy ? 0.6 : 1 }}>
+                      {activePlot === i && busy ? "…" : "💧 Water"}
                     </button>
                   )}
                   {isReady && (
-                    <button onClick={e => { e.stopPropagation(); doHarvest(i); }} disabled={busy}
-                      style={{ position: "absolute", bottom: 7, left: "50%", transform: "translateX(-50%)", background: "linear-gradient(180deg,#f0bf4a,#d99417)", color: "#5a3c08", border: "none", fontFamily: "'Baloo 2',cursive", fontSize: 12, fontWeight: 800, padding: "5px 14px", borderRadius: 10, cursor: "pointer", whiteSpace: "nowrap", animation: "pulseGlow 1.6s ease-in-out infinite" }}>
-                      Harvest +{CROP_YIELD[cropTypes[i]]}
+                    <button onClick={e => { e.stopPropagation(); doHarvest(i); }} disabled={activePlot === i && busy}
+                      style={{ position: "absolute", bottom: 7, left: "50%", transform: "translateX(-50%)", background: "linear-gradient(180deg,#f0bf4a,#d99417)", color: "#5a3c08", border: "none", fontFamily: "'Baloo 2',cursive", fontSize: 12, fontWeight: 800, padding: "5px 14px", borderRadius: 10, cursor: "pointer", whiteSpace: "nowrap", animation: activePlot === i && busy ? "none" : "pulseGlow 1.6s ease-in-out infinite", opacity: activePlot === i && busy ? 0.6 : 1 }}>
+                      {activePlot === i && busy ? "…" : `Harvest +${CROP_YIELD[cropTypes[i]]}`}
                     </button>
                   )}
                   {floats[i] && (
