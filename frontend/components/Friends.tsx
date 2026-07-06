@@ -36,11 +36,14 @@ export default function Friends() {
     }
   }, [txSuccess]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const myScore = myFarm ? Number((myFarm as readonly unknown[])[1] as bigint) : 0;
-  const refCode = address ?? "";
+  const myScore  = myFarm ? Number((myFarm as readonly unknown[])[1] as bigint) : 0;
+  const refCount = Number(myRefs ?? 0);
+  const APP_URL  = "https://shamba-teal.vercel.app";
+  const refLink  = address ? `${APP_URL}/?ref=${address}` : "";
+  const refLinkShort = address ? `shamba-teal.vercel.app/?ref=${address.slice(0,8)}…` : "connect wallet";
 
   function copyRef() {
-    try { navigator.clipboard.writeText(refCode); } catch (_) { /* ignore */ }
+    try { navigator.clipboard.writeText(refLink || address || ""); } catch (_) { /* ignore */ }
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }
@@ -70,11 +73,12 @@ export default function Friends() {
           <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 17 }}>Invite &amp; earn 10%</div>
           <p style={{ fontSize: 12.5, opacity: 0.85, margin: "6px 0 12px", lineHeight: 1.5 }}>Earn 10% of every harvest your invited friends make. Forever.</p>
           <div style={{ display: "flex", gap: 8, alignItems: "center", background: "rgba(255,255,255,.14)", border: "1px solid rgba(255,255,255,.22)", borderRadius: 12, padding: "9px 12px" }}>
-            <span style={{ flex: 1, fontFamily: "ui-monospace,monospace", fontSize: 11, fontWeight: 600, letterSpacing: ".02em", wordBreak: "break-all" }}>{address ? address.slice(0,10) + "…" + address.slice(-6) : "connect wallet"}</span>
+            <span style={{ flex: 1, fontFamily: "ui-monospace,monospace", fontSize: 11, fontWeight: 600, letterSpacing: ".02em", wordBreak: "break-all", opacity: 0.9 }}>{refLinkShort}</span>
             <button onClick={copyRef} style={{ background: "#f0bf4a", color: "#5a3c08", border: "none", fontWeight: 800, fontSize: 12, padding: "6px 12px", borderRadius: 9, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>
-              {copied ? "Copied!" : "Copy"}
+              {copied ? "✓ Copied!" : "Copy link"}
             </button>
           </div>
+          <div style={{ marginTop: 8, fontSize: 11, opacity: 0.75 }}>Share this link — friends who join via it credit earnings to you.</div>
         </div>
 
         {/* Stats card */}
@@ -93,6 +97,17 @@ export default function Friends() {
               <div style={{ fontSize: 11, fontWeight: 700, color: "#8a7256" }}>YOUR SCORE</div>
             </div>
           </div>
+          {refCount > 0 && (
+            <div style={{ display: "flex", alignItems: "center", gap: 11, paddingTop: 8, borderTop: "1px dashed #e8dac2" }}>
+              <div style={{ width: 42, height: 42, borderRadius: 12, background: "#e8f3ff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>📈</div>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#357f2f", lineHeight: 1.35 }}>
+                  10% of your {refCount} friend{refCount > 1 ? "s'" : "'s"} harvests flow back to you
+                </div>
+                <div style={{ fontSize: 11, color: "#8a7256" }}>passive · no action needed</div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
