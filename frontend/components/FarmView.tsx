@@ -210,8 +210,9 @@ export default function FarmView() {
                       <div style={{ fontSize: 11, fontWeight: 700, textShadow: "0 1px 2px rgba(0,0,0,.4)" }}>Tap to plant</div>
                     </div>
                   )}
+                  <div style={{ position: "absolute", top: 7, left: 7, background: "rgba(58,46,35,.62)", color: "rgba(255,255,255,.6)", fontSize: 9, fontWeight: 800, width: 16, height: 16, borderRadius: 5, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(2px)" }}>{i + 1}</div>
                   {!isEmpty && (
-                    <div style={{ position: "absolute", top: 7, left: 7, background: "rgba(58,46,35,.62)", color: "#fff", fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 7, backdropFilter: "blur(2px)", display: "flex", alignItems: "center", gap: 3 }}>
+                    <div style={{ position: "absolute", top: 7, left: 26, background: "rgba(58,46,35,.62)", color: "#fff", fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 7, backdropFilter: "blur(2px)", display: "flex", alignItems: "center", gap: 3 }}>
                       {watered[i] && !isReady && <span title="Watered">💧</span>}
                       {CROP_NAMES[cropTypes[i]]}
                     </div>
