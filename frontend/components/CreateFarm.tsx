@@ -10,7 +10,13 @@ export default function CreateFarm({ onCreated }: { onCreated?: () => void }) {
   const { isSuccess: txConfirmed } = useWaitForTransactionReceipt({ hash: txHash });
 
   useEffect(() => {
-    if (txConfirmed) onCreated?.();
+    if (!txConfirmed || !onCreated) return;
+    // RPC nodes can lag behind the chain — retry refetch at 2 s and 5 s
+    // so hasFarm flips to true even on a slow node
+    onCreated();
+    const t1 = setTimeout(onCreated, 2000);
+    const t2 = setTimeout(onCreated, 5000);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [txConfirmed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleCreate() {
