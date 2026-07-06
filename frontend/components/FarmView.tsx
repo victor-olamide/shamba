@@ -139,6 +139,12 @@ export default function FarmView() {
     }
   }
 
+  async function doWaterAll() {
+    for (let i = 0; i < 6; i++) {
+      if (states[i] === 1 && !watered[i]) await doWater(i);
+    }
+  }
+
   const medals = ["🥇", "🥈", "🥉", "4th", "5th"];
 
   return (
@@ -192,6 +198,12 @@ export default function FarmView() {
               <button onClick={doHarvestAll} disabled={busy}
                 style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 12, border: "none", padding: "7px 14px", borderRadius: 12, background: "linear-gradient(180deg,#f0bf4a,#d99417)", color: "#5a3c08", cursor: busy ? "not-allowed" : "pointer", whiteSpace: "nowrap", animation: "pulseGlow 1.6s ease-in-out infinite" }}>
                 🌾 Harvest All ({readyCount})
+              </button>
+            )}
+            {states.filter((s, i) => s === 1 && !watered[i]).length > 1 && (
+              <button onClick={doWaterAll} disabled={busy}
+                style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 12, border: "none", padding: "7px 14px", borderRadius: 12, background: "linear-gradient(180deg,#74c6f0,#4a9ed1)", color: "#fff", cursor: busy ? "not-allowed" : "pointer", whiteSpace: "nowrap" }}>
+                💧 Water All
               </button>
             )}
           </div>
