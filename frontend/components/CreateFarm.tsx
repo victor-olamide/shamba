@@ -24,6 +24,8 @@ export default function CreateFarm({ onCreated }: { onCreated?: () => void }) {
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [txConfirmed]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const explorerUrl = txHash ? `https://celoscan.io/tx/${txHash}` : null;
+
   function handleCreate() {
     writeContract({
       address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "createFarm",
@@ -82,6 +84,11 @@ export default function CreateFarm({ onCreated }: { onCreated?: () => void }) {
             <div style={{ fontSize: 12, color: "#a08a6e", marginTop: 7 }}>Your friend earns <b style={{ color: "#357f2f" }}>10%</b> of your harvest score.</div>
           </div>
 
+          {txConfirmed && explorerUrl && (
+            <div style={{ background: "#eaf5e2", border: "1px solid #cfe7bf", borderRadius: 12, padding: "10px 14px", fontSize: 13, color: "#357f2f", fontWeight: 600 }}>
+              ✅ Farm claimed! <a href={explorerUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#357f2f", fontWeight: 700 }}>View on Celo Explorer ↗</a>
+            </div>
+          )}
           {errMsg && (
             <div style={{ background: "rgba(192,57,43,.1)", border: "1px solid rgba(192,57,43,.3)", borderRadius: 12, padding: "10px 14px", fontSize: 13, color: "#c0392b", fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
               <span>⚠ {errMsg}</span>
