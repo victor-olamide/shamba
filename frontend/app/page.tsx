@@ -34,6 +34,15 @@ export default function Home() {
 
   const myScore   = farmData ? Number((farmData as readonly unknown[])[1] as bigint) : 0;
   const hasFarm   = farmData ? (farmData as readonly unknown[])[3] as boolean : false;
+
+  const { data: getFarmData } = useReadContract({
+    address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "getFarm",
+    args: address ? [address] : undefined,
+    query: { enabled: !!address && hasFarm, refetchInterval: 15000 },
+  });
+  const readyCount = getFarmData
+    ? ((getFarmData as readonly unknown[])[3] as readonly number[]).filter(s => s === 2).length
+    : 0;
   const level     = Math.floor(myScore / 150) + 1;
   const xpPct     = Math.round(((myScore % 150) / 150) * 100);
   const walletShort = address ? address.slice(0, 6) + "…" + address.slice(-4) : "";
@@ -137,7 +146,14 @@ export default function Home() {
           </div>
 
           <div style={{ display: "flex", gap: 3, background: "#f0e3cd", padding: 4, borderRadius: 14 }}>
-            <button onClick={() => switchTab("farm")}    style={tabStyle("farm")}>🌾 Farm</button>
+            <button onClick={() => switchTab("farm")} style={{ ...tabStyle("farm"), position: "relative" as const }}>
+              🌾 Farm
+              {readyCount > 0 && (
+                <span style={{ position: "absolute", top: -5, right: -5, background: "#c8881a", color: "#fff", fontSize: 10, fontWeight: 800, lineHeight: 1, padding: "2px 5px", borderRadius: 99, minWidth: 16, textAlign: "center", animation: "pulseGlow .9s ease-in-out infinite" }}>
+                  {readyCount}
+                </span>
+              )}
+            </button>
             <button onClick={() => switchTab("board")}   style={tabStyle("board")}>🏆 Rankings</button>
             <button onClick={() => switchTab("friends")} style={tabStyle("friends")}>🤝 Friends</button>
           </div>
@@ -166,23 +182,42 @@ export default function Home() {
       </div>
 
       {isWrongChain && (
-        <div style={{ background: "rgba(192,57,43,.1)", borderBottom: "1px solid rgba(192,57,43,.3)", padding: "10px clamp(14px,3vw,26px)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: "#c0392b" }}>⚠ Wrong network — switch to Celo mainnet to play</span>
+        <div style={{ background: "linear-gradient(90deg,rgba(192,57,43,.13),rgba(192,57,43,.07))", borderBottom: "2px solid rgba(192,57,43,.25)", padding: "12px clamp(14px,3vw,26px)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 22 }}>⛓️</span>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#c0392b" }}>You&apos;re on the wrong network</div>
+              <div style={{ fontSize: 12, color: "#a03020" }}>Shamba lives on Celo. Switch to start farming.</div>
+            </div>
+          </div>
           <button
             onClick={() => switchChain({ chainId: celo.id })}
             disabled={switching}
-            style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 13, padding: "6px 16px", borderRadius: 10, border: "none", background: "#c0392b", color: "#fff", cursor: switching ? "wait" : "pointer", opacity: switching ? 0.7 : 1 }}
+            style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 13, padding: "8px 20px", borderRadius: 12, border: "2px solid rgba(192,57,43,.4)", background: switching ? "rgba(192,57,43,.15)" : "#c0392b", color: switching ? "#c0392b" : "#fff", cursor: switching ? "wait" : "pointer", transition: "all .15s" }}
           >
-            {switching ? "Switching…" : "Switch to Celo"}
+            {switching ? "Switching…" : "⚡ Switch to Celo"}
           </button>
         </div>
       )}
 
-      <div style={{ maxWidth: 1180, margin: "0 auto", padding: "18px clamp(14px,3vw,26px) 60px", opacity: isWrongChain ? 0.4 : 1, pointerEvents: isWrongChain ? "none" : "auto", transition: "opacity .2s" }}>
+      <div className="has-mobile-nav" style={{ maxWidth: 1180, margin: "0 auto", padding: "18px clamp(14px,3vw,26px) 60px", opacity: isWrongChain ? 0.4 : 1, pointerEvents: isWrongChain ? "none" : "auto", transition: "opacity .2s" }}>
         {tab === "farm"    && <FarmView />}
         {tab === "board"   && <Leaderboard />}
         {tab === "friends" && <Friends />}
       </div>
+
+      {/* Mobile bottom nav */}
+      <nav className="mobile-nav">
+        {([["farm","🌾","Farm"],["board","🏆","Rankings"],["friends","🤝","Friends"]] as [Tab,string,string][]).map(([t,icon,label]) => (
+          <button key={t} className={tab === t ? "active" : ""} onClick={() => switchTab(t)} style={{ position: "relative" }}>
+            <span className="icon">{icon}</span>
+            {label}
+            {t === "farm" && readyCount > 0 && (
+              <span style={{ position: "absolute", top: 2, right: 6, background: "#c8881a", color: "#fff", fontSize: 9, fontWeight: 800, padding: "1px 4px", borderRadius: 99 }}>{readyCount}</span>
+            )}
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }
