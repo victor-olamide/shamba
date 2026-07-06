@@ -237,7 +237,14 @@ export default function FarmView() {
                   onClick={() => { if (isEmpty) setSelected(i); else if (isReady) doHarvest(i); }}
                   style={{ position: "relative", aspectRatio: "1/1", borderRadius: 18, cursor: "pointer", background: "linear-gradient(#7a5234,#5a3a23)", border: `3px solid ${isSelected ? "#5fa83f" : isReady ? "#e0a92e" : "#4d3019"}`, boxShadow: "inset 0 -6px 14px rgba(0,0,0,.32),inset 0 6px 10px rgba(255,255,255,.08),0 4px 10px -4px rgba(0,0,0,.4)", overflow: "hidden", transition: "transform .15s ease" }}>
                   <div style={{ position: "absolute", inset: 0, backgroundImage: "repeating-linear-gradient(95deg,rgba(0,0,0,.14) 0 2px,transparent 2px 16px)", opacity: 0.5 }} />
-                  {watered[i] && !isEmpty && <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,transparent,rgba(20,40,80,.28))", pointerEvents: "none" }} />}
+                  {watered[i] && !isEmpty && (
+                    <>
+                      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,transparent,rgba(20,40,80,.28))", pointerEvents: "none" }} />
+                      {isGrowing && (
+                        <div style={{ position: "absolute", bottom: 18, left: "50%", transform: "translateX(-50%)", background: "rgba(20,80,150,.72)", color: "#a8d8ff", fontSize: 9, fontWeight: 800, padding: "2px 7px", borderRadius: 6, backdropFilter: "blur(2px)", whiteSpace: "nowrap", pointerEvents: "none" }}>💧 +25% speed</div>
+                      )}
+                    </>
+                  )}
                   {!isEmpty && <RenderPlant cropIdx={cropTypes[i]} progress={progress} ready={isReady} />}
                   {isEmpty && (
                     <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 5, color: "rgba(255,255,255,.82)" }}>
@@ -274,7 +281,7 @@ export default function FarmView() {
                     </button>
                   )}
                   {floats[i] && (
-                    <div style={{ position: "absolute", top: "40%", left: "50%", fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 22, color: "#2f6b34", textShadow: "0 2px 0 #fff,0 0 8px rgba(255,255,255,.6)", animation: "floatUp 1.1s ease-out forwards", pointerEvents: "none", zIndex: 20 }}>
+                    <div style={{ position: "absolute", top: "30%", left: "50%", fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 28, color: "#f0bf4a", textShadow: "0 2px 0 #5a3c08,0 0 16px rgba(240,191,74,.7)", animation: "floatUp 1.3s ease-out forwards", pointerEvents: "none", zIndex: 20 }}>
                       {floats[i]}
                     </div>
                   )}
