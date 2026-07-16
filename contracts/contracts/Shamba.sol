@@ -84,6 +84,36 @@ contract Shamba is Ownable, ReentrancyGuard {
         emit CropHarvested(msg.sender, plotIdx, ct, earned);
     }
 
+    function waterMultiple(uint8[] calldata plotIdxs) external {
+        require(farms[msg.sender].initialized, "No farm");
+        for (uint256 i = 0; i < plotIdxs.length; i++) {
+            Plot storage plot = farms[msg.sender].plots[plotIdxs[i]];
+            if (plot.state == CropState.PLANTED && !plot.watered) {
+                plot.watered = true;
+                emit CropWatered(msg.sender, plotIdxs[i]);
+            }
+        }
+    }
+
+    function harvestMultiple(uint8[] calldata plotIdxs) external nonReentrant {
+        require(farms[msg.sender].initialized, "No farm");
+        Farm storage farm = farms[msg.sender];
+        address ref = referredBy[msg.sender];
+        for (uint256 i = 0; i < plotIdxs.length; i++) {
+            Plot storage plot = farm.plots[plotIdxs[i]];
+            if (plot.state != CropState.PLANTED) continue;
+            uint32 gt = growthTime[plot.cropType];
+            if (plot.watered) gt = (gt * 3) / 4;
+            if (block.timestamp < plot.plantedAt + gt) continue;
+            uint256 earned = harvestYield[plot.cropType];
+            uint8 ct = plot.cropType;
+            plot.state = CropState.EMPTY; plot.watered = false; plot.plantedAt = 0;
+            farm.totalHarvests++; farm.score += earned; farm.lastVisit = block.timestamp;
+            if (ref != address(0)) farms[ref].score += earned / 10;
+            emit CropHarvested(msg.sender, plotIdxs[i], ct, earned);
+        }
+    }
+
     function visitFriend(address friend) external {
         require(farms[msg.sender].initialized, "No farm");
         require(farms[friend].initialized, "Friend has no farm");
