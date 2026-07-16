@@ -13,6 +13,8 @@ export const SHAMBA_ABI = [
   { name: "water", type: "function", stateMutability: "nonpayable", inputs: [{ name: "plotIdx", type: "uint8" }], outputs: [] },
   { name: "harvest", type: "function", stateMutability: "nonpayable", inputs: [{ name: "plotIdx", type: "uint8" }], outputs: [] },
   { name: "visitFriend", type: "function", stateMutability: "nonpayable", inputs: [{ name: "friend", type: "address" }], outputs: [] },
+  { name: "waterMultiple", type: "function", stateMutability: "nonpayable", inputs: [{ name: "plotIdxs", type: "uint8[]" }], outputs: [] },
+  { name: "harvestMultiple", type: "function", stateMutability: "nonpayable", inputs: [{ name: "plotIdxs", type: "uint8[]" }], outputs: [] },
   {
     name: "getFarm", type: "function", stateMutability: "view",
     inputs: [{ name: "farmer", type: "address" }],

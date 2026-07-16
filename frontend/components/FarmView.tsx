@@ -18,7 +18,17 @@ function fmtRemain(secs: number) {
   return `${s}s`;
 }
 
-export default function FarmView() {
+const DEMO_FARM = {
+  cropTypes:    [0, 1, 2, 3, 0, 4] as number[],
+  plantedAts:   [0, 0, 0, 0, 0, 0] as number[],
+  watered:      [false, true, false, false, false, false] as boolean[],
+  states:       [2, 2, 1, 0, 1, 0] as number[],
+  totalHarvests: 3,
+  score: 120n as bigint,
+};
+const DEMO_PROGRESS = [1, 1, 0.55, 0, 0.3, 0];
+
+export default function FarmView({ demo = false, onConnectRequest }: { demo?: boolean; onConnectRequest?: () => void }) {
   const { address } = useAccount();
   const [selected, setSelected]   = useState<number | null>(null);
   const [cropChoice, setCropChoice] = useState(0);
@@ -72,7 +82,7 @@ export default function FarmView() {
     if (txSuccess) { refetch(); setPendingTx(undefined); setActivePlot(null); }
   }, [txSuccess]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!farm) return (
+  if (!demo && !farm) return (
     <div style={{ textAlign: "center", padding: "80px 20px", color: "#8a7256" }}>
       <div style={{ fontSize: 48, marginBottom: 12, display: "inline-block", animation: "bob 2s ease-in-out infinite" }}>🌱</div>
       <p style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 700, fontSize: 16 }}>Loading your farm…</p>
@@ -80,10 +90,10 @@ export default function FarmView() {
     </div>
   );
 
-  const [cropTypes, plantedAts, watered, states, totalHarvests, score] = farm as unknown as [
-    number[], number[], boolean[], number[], number, bigint, bigint
-  ];
-  const myScore = farmBasic ? Number((farmBasic as readonly unknown[])[1] as bigint) : Number(score);
+  const [cropTypes, plantedAts, watered, states, totalHarvests, score] = demo
+    ? [DEMO_FARM.cropTypes, DEMO_FARM.plantedAts, DEMO_FARM.watered, DEMO_FARM.states, DEMO_FARM.totalHarvests, DEMO_FARM.score]
+    : farm as unknown as [number[], number[], boolean[], number[], number, bigint, bigint];
+  const myScore = demo ? Number(DEMO_FARM.score) : farmBasic ? Number((farmBasic as readonly unknown[])[1] as bigint) : Number(score);
   const level   = Math.floor(myScore / 150) + 1;
   const xpInto  = myScore % 150;
   const xpPct   = Math.round((xpInto / 150) * 100);
@@ -108,6 +118,7 @@ export default function FarmView() {
 
   async function doPlant() {
     if (selected === null) return;
+    if (demo) { onConnectRequest?.(); return; }
     try {
       if (CROP_COST_USDM[cropChoice] > 0) {
         const amt = parseUnits(CROP_COST_USDM[cropChoice].toFixed(18), 18);
@@ -122,6 +133,7 @@ export default function FarmView() {
   }
 
   async function doWater(i: number) {
+    if (demo) { onConnectRequest?.(); return; }
     setActivePlot(i);
     try {
       const hash = await writeContractAsync({ address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "water", args: [i as unknown as number] });
@@ -131,6 +143,7 @@ export default function FarmView() {
   }
 
   async function doHarvest(i: number) {
+    if (demo) { onConnectRequest?.(); return; }
     setActivePlot(i);
     const yld = CROP_YIELD[cropTypes[i]];
     setFloats(f => ({ ...f, [i]: "+" + yld }));
@@ -143,15 +156,26 @@ export default function FarmView() {
   }
 
   async function doHarvestAll() {
-    for (let i = 0; i < 6; i++) {
-      if (states[i] === 2) await doHarvest(i);
-    }
+    if (demo) { onConnectRequest?.(); return; }
+    const readyIdxs = states.reduce<number[]>((acc, s, i) => s === 2 ? [...acc, i] : acc, []);
+    if (readyIdxs.length === 0) return;
+    try {
+      const hash = await writeContractAsync({ address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "harvestMultiple", args: [readyIdxs as unknown as number[]] });
+      setPendingTx(hash);
+      const total = readyIdxs.reduce((s, i) => s + CROP_YIELD[cropTypes[i]], 0);
+      addActivity("🌾", "#fbf0d4", `Harvested ${readyIdxs.length} plots · +${total} pts`, hash);
+    } catch { /* user rejected */ }
   }
 
   async function doWaterAll() {
-    for (let i = 0; i < 6; i++) {
-      if (states[i] === 1 && !watered[i]) await doWater(i);
-    }
+    if (demo) { onConnectRequest?.(); return; }
+    const unwateredIdxs = states.reduce<number[]>((acc, s, i) => s === 1 && !watered[i] ? [...acc, i] : acc, []);
+    if (unwateredIdxs.length === 0) return;
+    try {
+      const hash = await writeContractAsync({ address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "waterMultiple", args: [unwateredIdxs as unknown as number[]] });
+      setPendingTx(hash);
+      addActivity("💧", "#e3f1fa", `Watered ${unwateredIdxs.length} plots at once`, hash);
+    } catch { /* user rejected */ }
   }
 
   const medals = ["🥇", "🥈", "🥉", "4th", "5th"];
@@ -228,13 +252,13 @@ export default function FarmView() {
               const isReady   = states[i] === 2;
               const isGrowing = states[i] === 1;
               const growthSecs = isEmpty ? 1 : CROP_GROWTH_SECS[cropTypes[i]] * (watered[i] ? 0.75 : 1);
-              const progress  = isEmpty ? 0 : Math.min(1, (now - plantedAts[i]) / growthSecs);
-              const remain    = isEmpty ? 0 : Math.max(0, Math.ceil(growthSecs - (now - plantedAts[i])));
+              const progress  = demo ? DEMO_PROGRESS[i] : (isEmpty ? 0 : Math.min(1, (now - plantedAts[i]) / growthSecs));
+              const remain    = demo ? Math.floor(growthSecs * (1 - DEMO_PROGRESS[i])) : (isEmpty ? 0 : Math.max(0, Math.ceil(growthSecs - (now - plantedAts[i]))));
               const isSelected = selected === i;
 
               return (
                 <div key={i} className="plot-card"
-                  onClick={() => { if (isEmpty) setSelected(i); else if (isReady) doHarvest(i); }}
+                  onClick={() => { if (isEmpty && !demo) setSelected(i); else if (isEmpty && demo) onConnectRequest?.(); else if (isReady) doHarvest(i); }}
                   style={{ position: "relative", aspectRatio: "1/1", borderRadius: 18, cursor: "pointer", background: "linear-gradient(#7a5234,#5a3a23)", border: `3px solid ${isSelected ? "#5fa83f" : isReady ? "#e0a92e" : "#4d3019"}`, boxShadow: "inset 0 -6px 14px rgba(0,0,0,.32),inset 0 6px 10px rgba(255,255,255,.08),0 4px 10px -4px rgba(0,0,0,.4)", overflow: "hidden", transition: "transform .15s ease" }}>
                   <div style={{ position: "absolute", inset: 0, backgroundImage: "repeating-linear-gradient(95deg,rgba(0,0,0,.14) 0 2px,transparent 2px 16px)", opacity: 0.5 }} />
                   {watered[i] && !isEmpty && (
