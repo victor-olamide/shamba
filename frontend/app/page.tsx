@@ -107,7 +107,7 @@ export default function Home() {
                 <button
                   onClick={() => setGuestMode(true)}
                   style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 700, fontSize: 17, color: "#2f6b34", background: "rgba(255,255,255,.65)", border: "2px solid rgba(53,107,44,.3)", padding: "14px 28px", borderRadius: 18, cursor: "pointer", backdropFilter: "blur(4px)" }}>
-                  👀 Try Demo
+                  Try Demo
                 </button>
               </div>
               <p style={{ fontSize: 13, color: "#7a6448", margin: "14px 0 0", fontWeight: 600 }}>Free to play · Gas fees under $0.01 · Built for MiniPay</p>
@@ -154,8 +154,7 @@ export default function Home() {
         {/* Guest banner */}
         <div style={{ background: "linear-gradient(90deg,rgba(53,107,44,.12),rgba(53,107,44,.06))", borderBottom: "1px solid rgba(53,107,44,.2)", padding: "10px clamp(14px,3vw,26px)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 18 }}>👀</span>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#2f6b34" }}>Demo mode — actions won&apos;t save. Connect to play for real.</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#2f6b34" }}>Demo mode — actions won&apos;t save on-chain. Connect to play for real.</span>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={() => connectors[0] && connect({ connector: connectors[0] })} style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 13, padding: "7px 18px", borderRadius: 10, border: "none", background: "#357f2f", color: "#fff", cursor: "pointer" }}>

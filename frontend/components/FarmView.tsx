@@ -18,25 +18,36 @@ function fmtRemain(secs: number) {
   return `${s}s`;
 }
 
-const DEMO_FARM = {
-  cropTypes:    [0, 1, 2, 3, 0, 4] as number[],
-  plantedAts:   [0, 0, 0, 0, 0, 0] as number[],
-  watered:      [false, true, false, false, false, false] as boolean[],
-  states:       [2, 2, 1, 0, 1, 0] as number[],
-  totalHarvests: 3,
-  score: 120n as bigint,
-};
-const DEMO_PROGRESS = [1, 1, 0.55, 0, 0.3, 0];
+const DEMO_GROW_SEC = 25; // demo crops mature in 25 s so users see the full loop
+
+type DemoPlot = { cropType: number; watered: boolean; plantedAt: number }; // plantedAt=0 → empty
+
+function initDemoPlots(): DemoPlot[] {
+  const n = Date.now();
+  return [
+    { cropType: 0, watered: false, plantedAt: n - 40000 }, // maize  — ready
+    { cropType: 1, watered: true,  plantedAt: n - 40000 }, // tomato — ready + watered
+    { cropType: 2, watered: false, plantedAt: n - 12000 }, // cassava — growing ~48%
+    { cropType: 0, watered: false, plantedAt: 0 },          // empty
+    { cropType: 3, watered: true,  plantedAt: n - 8000 },  // sunflower — growing watered
+    { cropType: 0, watered: false, plantedAt: 0 },          // empty
+  ];
+}
 
 export default function FarmView({ demo = false, onConnectRequest }: { demo?: boolean; onConnectRequest?: () => void }) {
   const { address } = useAccount();
   const [selected, setSelected]   = useState<number | null>(null);
   const [cropChoice, setCropChoice] = useState(0);
   const [floats, setFloats]       = useState<Record<number, string>>({});
-  const [activity, setActivity]   = useState<ActivityItem[]>([{ key: 0, icon: "🌾", bg: "#fbf0d4", text: "Welcome to your Shamba!" }]);
+  const [activity, setActivity]   = useState<ActivityItem[]>([{ key: 0, icon: "🌾", bg: "#fbf0d4", text: demo ? "Demo farm — play around!" : "Welcome to your Shamba!" }]);
   const actKey = useRef(1);
   const [, setTick] = useState(0);
   const chainAnchor = useRef({ ts: 0, at: 0 });
+
+  // Demo-only local state
+  const [demoPlots, setDemoPlots] = useState<DemoPlot[]>(initDemoPlots);
+  const [demoScore, setDemoScore] = useState(120);
+  const [demoHarvests, setDemoHarvests] = useState(3);
 
   // Anchor timers to chain time — machine clock can drift from blockchain time
   const { data: latestBlock } = useBlock({ watch: true });
@@ -90,10 +101,21 @@ export default function FarmView({ demo = false, onConnectRequest }: { demo?: bo
     </div>
   );
 
+  // Compute live demo arrays from local state (re-evaluated every tick)
+  const nowMs = Date.now();
+  const demoCropTypes   = demoPlots.map(p => p.cropType);
+  const demoPlantedAts  = demoPlots.map(p => Math.floor(p.plantedAt / 1000));
+  const demoWatered     = demoPlots.map(p => p.watered);
+  const demoStates      = demoPlots.map(p => {
+    if (p.plantedAt === 0) return 0;
+    const growMs = p.watered ? DEMO_GROW_SEC * 750 : DEMO_GROW_SEC * 1000;
+    return nowMs - p.plantedAt >= growMs ? 2 : 1;
+  });
+
   const [cropTypes, plantedAts, watered, states, totalHarvests, score] = demo
-    ? [DEMO_FARM.cropTypes, DEMO_FARM.plantedAts, DEMO_FARM.watered, DEMO_FARM.states, DEMO_FARM.totalHarvests, DEMO_FARM.score]
+    ? [demoCropTypes, demoPlantedAts, demoWatered, demoStates, demoHarvests, BigInt(demoScore)]
     : farm as unknown as [number[], number[], boolean[], number[], number, bigint, bigint];
-  const myScore = demo ? Number(DEMO_FARM.score) : farmBasic ? Number((farmBasic as readonly unknown[])[1] as bigint) : Number(score);
+  const myScore = demo ? demoScore : farmBasic ? Number((farmBasic as readonly unknown[])[1] as bigint) : Number(score);
   const level   = Math.floor(myScore / 150) + 1;
   const xpInto  = myScore % 150;
   const xpPct   = Math.round((xpInto / 150) * 100);
@@ -116,9 +138,45 @@ export default function FarmView({ demo = false, onConnectRequest }: { demo?: bo
     setActivity(prev => [{ key: k, icon, bg, text, txHash }, ...prev].slice(0, 6));
   }
 
+  // ── Demo action handlers (pure local state, no wallet) ─────────────────
+  function demoPlant() {
+    if (selected === null) return;
+    const idx = selected;
+    setDemoPlots(prev => { const n = [...prev]; n[idx] = { cropType: cropChoice, watered: false, plantedAt: Date.now() }; return n; });
+    addActivity("🌱", "#eaf5e2", `Planted ${CROP_NAMES[cropChoice]} in plot ${idx + 1}`);
+    setSelected(null);
+  }
+
+  function demoWater(i: number) {
+    if (demoPlots[i].plantedAt === 0) return;
+    setDemoPlots(prev => { const n = [...prev]; n[i] = { ...n[i], watered: true }; return n; });
+    addActivity("💧", "#e3f1fa", `Watered ${CROP_NAMES[demoPlots[i].cropType]}`);
+  }
+
+  function demoHarvest(i: number) {
+    const ct = demoPlots[i].cropType;
+    const yld = CROP_YIELD[ct];
+    setFloats(f => ({ ...f, [i]: "+" + yld }));
+    setTimeout(() => setFloats(f => { const n = { ...f }; delete n[i]; return n; }), 1300);
+    setDemoScore(s => s + yld);
+    setDemoHarvests(h => h + 1);
+    setDemoPlots(prev => { const n = [...prev]; n[i] = { cropType: 0, watered: false, plantedAt: 0 }; return n; });
+    addActivity("🌾", "#fbf0d4", `Harvested ${CROP_NAMES[ct]} +${yld} pts`);
+  }
+
+  function demoHarvestAll() {
+    const ready = demoStates.reduce<number[]>((a, s, i) => s === 2 ? [...a, i] : a, []);
+    ready.forEach(i => demoHarvest(i));
+  }
+
+  function demoWaterAll() {
+    const targets = demoStates.reduce<number[]>((a, s, i) => s === 1 && !demoWatered[i] ? [...a, i] : a, []);
+    targets.forEach(i => demoWater(i));
+  }
+
+  // ── Real (on-chain) action handlers ────────────────────────────────────
   async function doPlant() {
     if (selected === null) return;
-    if (demo) { onConnectRequest?.(); return; }
     try {
       if (CROP_COST_USDM[cropChoice] > 0) {
         const amt = parseUnits(CROP_COST_USDM[cropChoice].toFixed(18), 18);
@@ -133,7 +191,6 @@ export default function FarmView({ demo = false, onConnectRequest }: { demo?: bo
   }
 
   async function doWater(i: number) {
-    if (demo) { onConnectRequest?.(); return; }
     setActivePlot(i);
     try {
       const hash = await writeContractAsync({ address: SHAMBA_ADDRESS, abi: SHAMBA_ABI, functionName: "water", args: [i as unknown as number] });
@@ -143,7 +200,6 @@ export default function FarmView({ demo = false, onConnectRequest }: { demo?: bo
   }
 
   async function doHarvest(i: number) {
-    if (demo) { onConnectRequest?.(); return; }
     setActivePlot(i);
     const yld = CROP_YIELD[cropTypes[i]];
     setFloats(f => ({ ...f, [i]: "+" + yld }));
@@ -156,7 +212,6 @@ export default function FarmView({ demo = false, onConnectRequest }: { demo?: bo
   }
 
   async function doHarvestAll() {
-    if (demo) { onConnectRequest?.(); return; }
     const readyIdxs = states.reduce<number[]>((acc, s, i) => s === 2 ? [...acc, i] : acc, []);
     if (readyIdxs.length === 0) return;
     try {
@@ -168,7 +223,6 @@ export default function FarmView({ demo = false, onConnectRequest }: { demo?: bo
   }
 
   async function doWaterAll() {
-    if (demo) { onConnectRequest?.(); return; }
     const unwateredIdxs = states.reduce<number[]>((acc, s, i) => s === 1 && !watered[i] ? [...acc, i] : acc, []);
     if (unwateredIdxs.length === 0) return;
     try {
@@ -228,14 +282,14 @@ export default function FarmView({ demo = false, onConnectRequest }: { demo?: bo
               🌱 {growingCount} growing · ✅ {readyCount} ready
             </div>
             {readyCount > 1 && (
-              <button onClick={doHarvestAll} disabled={busy}
-                style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 12, border: "none", padding: "7px 14px", borderRadius: 12, background: "linear-gradient(180deg,#f0bf4a,#d99417)", color: "#5a3c08", cursor: busy ? "not-allowed" : "pointer", whiteSpace: "nowrap", animation: "pulseGlow 1.6s ease-in-out infinite" }}>
+              <button onClick={demo ? demoHarvestAll : doHarvestAll} disabled={!demo && busy}
+                style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 12, border: "none", padding: "7px 14px", borderRadius: 12, background: "linear-gradient(180deg,#f0bf4a,#d99417)", color: "#5a3c08", cursor: "pointer", whiteSpace: "nowrap", animation: "pulseGlow 1.6s ease-in-out infinite" }}>
                 🌾 Harvest All ({readyCount})
               </button>
             )}
             {states.filter((s, i) => s === 1 && !watered[i]).length > 1 && (
-              <button onClick={doWaterAll} disabled={busy}
-                style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 12, border: "none", padding: "7px 14px", borderRadius: 12, background: "linear-gradient(180deg,#74c6f0,#4a9ed1)", color: "#fff", cursor: busy ? "not-allowed" : "pointer", whiteSpace: "nowrap" }}>
+              <button onClick={demo ? demoWaterAll : doWaterAll} disabled={!demo && busy}
+                style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 12, border: "none", padding: "7px 14px", borderRadius: 12, background: "linear-gradient(180deg,#74c6f0,#4a9ed1)", color: "#fff", cursor: "pointer", whiteSpace: "nowrap" }}>
                 💧 Water All
               </button>
             )}
@@ -251,14 +305,19 @@ export default function FarmView({ demo = false, onConnectRequest }: { demo?: bo
               const isEmpty   = states[i] === 0;
               const isReady   = states[i] === 2;
               const isGrowing = states[i] === 1;
-              const growthSecs = isEmpty ? 1 : CROP_GROWTH_SECS[cropTypes[i]] * (watered[i] ? 0.75 : 1);
-              const progress  = demo ? DEMO_PROGRESS[i] : (isEmpty ? 0 : Math.min(1, (now - plantedAts[i]) / growthSecs));
-              const remain    = demo ? Math.floor(growthSecs * (1 - DEMO_PROGRESS[i])) : (isEmpty ? 0 : Math.max(0, Math.ceil(growthSecs - (now - plantedAts[i]))));
+              const growthSecs = demo
+                ? (demoPlots[i].watered ? DEMO_GROW_SEC * 0.75 : DEMO_GROW_SEC)
+                : (isEmpty ? 1 : CROP_GROWTH_SECS[cropTypes[i]] * (watered[i] ? 0.75 : 1));
+              const elapsedSecs = demo
+                ? (demoPlots[i].plantedAt > 0 ? (nowMs - demoPlots[i].plantedAt) / 1000 : 0)
+                : (now - plantedAts[i]);
+              const progress  = isEmpty ? 0 : Math.min(1, elapsedSecs / growthSecs);
+              const remain    = isEmpty ? 0 : Math.max(0, Math.ceil(growthSecs - elapsedSecs));
               const isSelected = selected === i;
 
               return (
                 <div key={i} className="plot-card"
-                  onClick={() => { if (isEmpty && !demo) setSelected(i); else if (isEmpty && demo) onConnectRequest?.(); else if (isReady) doHarvest(i); }}
+                  onClick={() => { if (isEmpty) { if (demo) { setCropChoice(0); setSelected(i); } else setSelected(i); } else if (isReady) { demo ? demoHarvest(i) : doHarvest(i); } }}
                   style={{ position: "relative", aspectRatio: "1/1", borderRadius: 18, cursor: "pointer", background: "linear-gradient(#7a5234,#5a3a23)", border: `3px solid ${isSelected ? "#5fa83f" : isReady ? "#e0a92e" : "#4d3019"}`, boxShadow: "inset 0 -6px 14px rgba(0,0,0,.32),inset 0 6px 10px rgba(255,255,255,.08),0 4px 10px -4px rgba(0,0,0,.4)", overflow: "hidden", transition: "transform .15s ease" }}>
                   <div style={{ position: "absolute", inset: 0, backgroundImage: "repeating-linear-gradient(95deg,rgba(0,0,0,.14) 0 2px,transparent 2px 16px)", opacity: 0.5 }} />
                   {watered[i] && !isEmpty && (
@@ -293,15 +352,15 @@ export default function FarmView({ demo = false, onConnectRequest }: { demo?: bo
                     </div>
                   )}
                   {isGrowing && !watered[i] && (
-                    <button onClick={e => { e.stopPropagation(); doWater(i); }} disabled={activePlot === i && busy}
-                      style={{ position: "absolute", bottom: 7, left: "50%", transform: "translateX(-50%)", background: "rgba(74,158,209,.92)", color: "#fff", border: "none", fontSize: 11, fontWeight: 800, padding: "4px 12px", borderRadius: 9, cursor: "pointer", boxShadow: "0 3px 8px -2px rgba(31,110,160,.7)", whiteSpace: "nowrap", opacity: activePlot === i && busy ? 0.6 : 1 }}>
-                      {activePlot === i && busy ? "…" : "💧 Water"}
+                    <button onClick={e => { e.stopPropagation(); demo ? demoWater(i) : doWater(i); }} disabled={!demo && activePlot === i && busy}
+                      style={{ position: "absolute", bottom: 7, left: "50%", transform: "translateX(-50%)", background: "rgba(74,158,209,.92)", color: "#fff", border: "none", fontSize: 11, fontWeight: 800, padding: "4px 12px", borderRadius: 9, cursor: "pointer", boxShadow: "0 3px 8px -2px rgba(31,110,160,.7)", whiteSpace: "nowrap", opacity: !demo && activePlot === i && busy ? 0.6 : 1 }}>
+                      {!demo && activePlot === i && busy ? "…" : "💧 Water"}
                     </button>
                   )}
                   {isReady && (
-                    <button onClick={e => { e.stopPropagation(); doHarvest(i); }} disabled={activePlot === i && busy}
-                      style={{ position: "absolute", bottom: 7, left: "50%", transform: "translateX(-50%)", background: "linear-gradient(180deg,#f0bf4a,#d99417)", color: "#5a3c08", border: "none", fontFamily: "'Baloo 2',cursive", fontSize: 12, fontWeight: 800, padding: "5px 14px", borderRadius: 10, cursor: "pointer", whiteSpace: "nowrap", animation: activePlot === i && busy ? "none" : "pulseGlow 1.6s ease-in-out infinite", opacity: activePlot === i && busy ? 0.6 : 1 }}>
-                      {activePlot === i && busy ? "…" : `Harvest +${CROP_YIELD[cropTypes[i]]}`}
+                    <button onClick={e => { e.stopPropagation(); demo ? demoHarvest(i) : doHarvest(i); }} disabled={!demo && activePlot === i && busy}
+                      style={{ position: "absolute", bottom: 7, left: "50%", transform: "translateX(-50%)", background: "linear-gradient(180deg,#f0bf4a,#d99417)", color: "#5a3c08", border: "none", fontFamily: "'Baloo 2',cursive", fontSize: 12, fontWeight: 800, padding: "5px 14px", borderRadius: 10, cursor: "pointer", whiteSpace: "nowrap", animation: !demo && activePlot === i && busy ? "none" : "pulseGlow 1.6s ease-in-out infinite", opacity: !demo && activePlot === i && busy ? 0.6 : 1 }}>
+                      {!demo && activePlot === i && busy ? "…" : `Harvest +${CROP_YIELD[cropTypes[i]]}`}
                     </button>
                   )}
                   {floats[i] && (
@@ -347,9 +406,9 @@ export default function FarmView({ demo = false, onConnectRequest }: { demo?: bo
                       ⚠ Insufficient cUSD balance — you need {costUsdm} cUSD to plant Golden Wheat
                     </div>
                   )}
-                  <button onClick={doPlant} disabled={busy || insufficient}
-                    style={{ width: "100%", marginTop: 8, fontFamily: "'Baloo 2',cursive", fontWeight: 700, fontSize: 16, border: "none", padding: 13, borderRadius: 14, background: busy || insufficient ? "#efe3cd" : "linear-gradient(180deg,#5fa83f,#357f2f)", color: busy || insufficient ? "#b89a6a" : "#fff", cursor: busy || insufficient ? "not-allowed" : "pointer", boxShadow: busy || insufficient ? "none" : "0 8px 18px -6px rgba(53,107,44,.5)" }}>
-                    {busy ? "Confirming…" : costUsdm > 0 ? `🌱 Plant ${CROP_NAMES[cropChoice]} — ${costUsdm} cUSD` : `🌱 Plant ${CROP_NAMES[cropChoice]}`}
+                  <button onClick={demo ? demoPlant : doPlant} disabled={!demo && (busy || insufficient)}
+                    style={{ width: "100%", marginTop: 8, fontFamily: "'Baloo 2',cursive", fontWeight: 700, fontSize: 16, border: "none", padding: 13, borderRadius: 14, background: (!demo && (busy || insufficient)) ? "#efe3cd" : "linear-gradient(180deg,#5fa83f,#357f2f)", color: (!demo && (busy || insufficient)) ? "#b89a6a" : "#fff", cursor: (!demo && (busy || insufficient)) ? "not-allowed" : "pointer", boxShadow: (!demo && (busy || insufficient)) ? "none" : "0 8px 18px -6px rgba(53,107,44,.5)" }}>
+                    {!demo && busy ? "Confirming…" : costUsdm > 0 && !demo ? `🌱 Plant ${CROP_NAMES[cropChoice]} — ${costUsdm} cUSD` : `🌱 Plant ${CROP_NAMES[cropChoice]}`}
                   </button>
                 </>
               );
