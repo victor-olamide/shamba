@@ -21,20 +21,10 @@ export default function Home() {
   const isWrongChain = isConnected && chainId !== celo.id;
   const [tab, setTab] = useState<Tab>("farm");
   const [guestMode, setGuestMode] = useState(false);
-  const [showConnectPrompt, setShowConnectPrompt] = useState(false);
 
   function switchTab(t: Tab) {
     setTab(t);
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  function handleConnectRequest() {
-    setShowConnectPrompt(true);
-  }
-
-  function doConnect() {
-    setShowConnectPrompt(false);
-    if (connectors[0]) connect({ connector: connectors[0] });
   }
 
   const { data: farmData, refetch: refetchFarm } = useReadContract({
@@ -133,40 +123,66 @@ export default function Home() {
     );
   }
 
+  const guestTabStyle = (t: Tab) => ({
+    fontFamily: "'Plus Jakarta Sans',sans-serif",
+    fontWeight: 700, fontSize: 13,
+    border: "none", padding: "8px 15px", borderRadius: 11, cursor: "pointer", whiteSpace: "nowrap" as const,
+    transition: "all .15s ease",
+    background: tab === t ? "#fffaf2" : "transparent",
+    color:      tab === t ? "#2f6b34" : "#8a7256",
+    boxShadow:  tab === t ? "0 3px 8px -3px rgba(122,82,52,.45)" : "none",
+  });
+
   if (guestMode && !isConnected) {
     return (
       <div style={{ minHeight: "100vh", background: "radial-gradient(120% 80% at 50% -10%,#fef4de 0%,#f6e7cc 46%,#eedaba 100%)", fontFamily: "'Plus Jakarta Sans',system-ui,sans-serif", color: "#3a2e23" }}>
-        {/* Connect prompt modal */}
-        {showConnectPrompt && (
-          <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={() => setShowConnectPrompt(false)}>
-            <div style={{ background: "#fffaf2", borderRadius: 24, padding: 28, maxWidth: 360, width: "100%", textAlign: "center", boxShadow: "0 24px 60px -12px rgba(0,0,0,.45)" }} onClick={e => e.stopPropagation()}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}>🌾</div>
-              <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 22, color: "#2f6b34", marginBottom: 8 }}>Ready to farm for real?</div>
-              <p style={{ fontSize: 14, color: "#7a6448", margin: "0 0 20px", lineHeight: 1.5 }}>Connect your wallet to claim your own farm, earn real score on Celo, and appear on the leaderboard.</p>
-              <button onClick={doConnect} style={{ width: "100%", fontFamily: "'Baloo 2',cursive", fontWeight: 700, fontSize: 17, color: "#fff", background: "linear-gradient(180deg,#5fa83f,#357f2f)", border: "none", padding: "14px 24px", borderRadius: 14, cursor: "pointer", boxShadow: "0 8px 20px -6px rgba(53,107,44,.5)", marginBottom: 10 }}>
-                👛 Connect Wallet
+        {/* Sticky header — same layout, demo badge instead of wallet */}
+        <div style={{ position: "sticky", top: 0, zIndex: 60, background: "rgba(255,250,242,.88)", backdropFilter: "blur(12px)", borderBottom: "1px solid #ece0cc" }}>
+          <div style={{ maxWidth: 1180, margin: "0 auto", padding: "11px clamp(14px,3vw,26px)", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginRight: "auto" }}>
+              <div style={{ width: 40, height: 40, borderRadius: 13, background: "linear-gradient(145deg,#6db04e,#357f2f)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 14px -4px rgba(53,107,44,.5)", fontSize: 20 }}>🌾</div>
+              <div>
+                <div style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 21, lineHeight: 1, color: "#357f2f" }}>Shamba</div>
+                <div style={{ fontSize: 10, color: "#a08a6e", fontWeight: 700, letterSpacing: ".06em" }}>IDLE FARM · CELO</div>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: 3, background: "#f0e3cd", padding: 4, borderRadius: 14 }}>
+              <button onClick={() => switchTab("farm")}    style={guestTabStyle("farm")}>🌾 Farm</button>
+              <button onClick={() => switchTab("board")}   style={guestTabStyle("board")}>🏆 Rankings</button>
+              <button onClick={() => switchTab("friends")} style={guestTabStyle("friends")}>🤝 Friends</button>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+              <div style={{ background: "#fdf3d4", border: "1px solid #e8d18a", padding: "5px 11px", borderRadius: 11, fontSize: 12, fontWeight: 700, color: "#9a6a14" }}>Demo mode</div>
+              <button onClick={() => connectors[0] && connect({ connector: connectors[0] })}
+                style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 13, padding: "6px 16px", borderRadius: 10, border: "none", background: "linear-gradient(180deg,#5fa83f,#357f2f)", color: "#fff", cursor: "pointer" }}>
+                Connect to save
               </button>
-              <button onClick={() => setShowConnectPrompt(false)} style={{ background: "none", border: "none", fontSize: 13, color: "#a08a6e", cursor: "pointer", fontWeight: 600 }}>Continue in demo</button>
             </div>
           </div>
-        )}
+        </div>
 
-        {/* Guest banner */}
-        <div style={{ background: "linear-gradient(90deg,rgba(53,107,44,.12),rgba(53,107,44,.06))", borderBottom: "1px solid rgba(53,107,44,.2)", padding: "10px clamp(14px,3vw,26px)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#2f6b34" }}>Demo mode — actions won&apos;t save on-chain. Connect to play for real.</span>
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={() => connectors[0] && connect({ connector: connectors[0] })} style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 13, padding: "7px 18px", borderRadius: 10, border: "none", background: "#357f2f", color: "#fff", cursor: "pointer" }}>
-              👛 Connect
+        {/* Demo banner */}
+        <div style={{ background: "linear-gradient(90deg,rgba(154,106,20,.1),rgba(154,106,20,.05))", borderBottom: "1px solid rgba(154,106,20,.2)", padding: "8px clamp(14px,3vw,26px)", fontSize: 12, fontWeight: 600, color: "#9a6a14", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+          <span>Farm actions work in demo — nothing is saved on-chain. Connect a wallet to keep your progress and appear on the leaderboard.</span>
+          <button onClick={() => setGuestMode(false)} style={{ background: "none", border: "none", fontSize: 11, fontWeight: 700, color: "#a08a6e", cursor: "pointer" }}>← Back to landing</button>
+        </div>
+
+        <div className="has-mobile-nav" style={{ maxWidth: 1180, margin: "0 auto", padding: "18px clamp(14px,3vw,26px) 60px" }}>
+          {tab === "farm"    && <FarmView demo />}
+          {tab === "board"   && <Leaderboard />}
+          {tab === "friends" && <Friends />}
+        </div>
+
+        <nav className="mobile-nav">
+          {([["farm","🌾","Farm"],["board","🏆","Rankings"],["friends","🤝","Friends"]] as [Tab,string,string][]).map(([t,icon,label]) => (
+            <button key={t} className={tab === t ? "active" : ""} onClick={() => switchTab(t)}>
+              <span className="icon">{icon}</span>
+              {label}
             </button>
-            <button onClick={() => setGuestMode(false)} style={{ background: "none", border: "1px solid rgba(53,107,44,.3)", fontSize: 12, fontWeight: 700, color: "#7a6448", padding: "7px 12px", borderRadius: 10, cursor: "pointer" }}>← Back</button>
-          </div>
-        </div>
-
-        <div style={{ maxWidth: 1180, margin: "0 auto", padding: "18px clamp(14px,3vw,26px) 60px" }}>
-          <FarmView demo onConnectRequest={handleConnectRequest} />
-        </div>
+          ))}
+        </nav>
       </div>
     );
   }
