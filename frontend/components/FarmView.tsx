@@ -296,9 +296,20 @@ export default function FarmView({ demo = false, onConnectRequest }: { demo?: bo
         </div>
 
         {/* Farm grid */}
-        <div style={{ position: "relative", borderRadius: 26, overflow: "hidden", boxShadow: "0 22px 50px -22px rgba(122,82,52,.6),inset 0 0 0 1px rgba(255,255,255,.3)", background: "linear-gradient(180deg,#bfe6f2 0%,#d9eecb 34%,#caa46e 52%,#8a5e3b 100%)", padding: "clamp(16px,3vw,28px)" }}>
-          <div style={{ position: "absolute", top: 18, right: 24, width: 58, height: 58, borderRadius: "50%", background: "radial-gradient(circle,#fff3c2,#ffd860 60%,#f6b929)", boxShadow: "0 0 38px 12px rgba(255,210,90,.45)", animation: "sunpulse 6s ease-in-out infinite" }} />
-          <div style={{ position: "absolute", top: 26, left: 30, width: 74, height: 22, borderRadius: 24, background: "rgba(255,255,255,.7)", filter: "blur(.5px)", animation: "drift 16s ease-in-out infinite alternate" }} />
+        <div style={{ position: "relative", borderRadius: 26, overflow: "hidden", boxShadow: "0 22px 50px -22px rgba(60,30,10,.7),inset 0 0 0 2px rgba(255,255,255,.15)", background: "linear-gradient(180deg,#87ceeb 0%,#aaddff 14%,#c8edaa 22%,#5a9632 30%,#3e7524 36%,#6b4a28 44%,#4a2f12 62%,#3a2008 100%)" }}>
+          {/* Sky layer decorations */}
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "30%", background: "linear-gradient(180deg,rgba(135,206,235,.6),transparent)" }} />
+          {/* Sun */}
+          <div style={{ position: "absolute", top: 12, right: 20, width: 52, height: 52, borderRadius: "50%", background: "radial-gradient(circle,#fffde0,#ffe066 50%,#f6b929 85%)", boxShadow: "0 0 36px 10px rgba(255,210,90,.55)", animation: "sunpulse 6s ease-in-out infinite", zIndex: 1 }} />
+          {/* Clouds */}
+          <div style={{ position: "absolute", top: 10, left: 18, width: 80, height: 22, borderRadius: 24, background: "rgba(255,255,255,.82)", filter: "blur(1px)", animation: "drift 16s ease-in-out infinite alternate", zIndex: 1 }} />
+          <div style={{ position: "absolute", top: 22, left: "40%", width: 54, height: 16, borderRadius: 20, background: "rgba(255,255,255,.68)", filter: "blur(.8px)", animation: "drift 22s ease-in-out 2s infinite alternate-reverse", zIndex: 1 }} />
+          {/* Grass strip */}
+          <div style={{ position: "absolute", left: 0, right: 0, top: "28%", height: 20, background: "linear-gradient(180deg,#4a9a28,#3c7c20)", borderBottom: "3px solid #2e5e18", zIndex: 1 }} />
+          {/* Soil furrow texture overlay */}
+          <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, top: "35%", backgroundImage: "repeating-linear-gradient(180deg,rgba(255,255,255,.04) 0 2px,transparent 2px 22px)", zIndex: 1 }} />
+          {/* Padding area for plots */}
+          <div style={{ position: "relative", zIndex: 2, padding: "clamp(48px,8vw,64px) clamp(14px,3vw,24px) clamp(16px,3vw,24px)" }}>
           <div style={{ position: "relative", display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "clamp(9px,1.8vw,18px)" }}>
             {Array.from({ length: 6 }, (_, i) => {
               const isEmpty   = states[i] === 0;
@@ -317,8 +328,10 @@ export default function FarmView({ demo = false, onConnectRequest }: { demo?: bo
               return (
                 <div key={i} className="plot-card"
                   onClick={() => { if (isEmpty) { if (demo) { setCropChoice(0); setSelected(i); } else setSelected(i); } else if (isReady) { demo ? demoHarvest(i) : doHarvest(i); } }}
-                  style={{ position: "relative", aspectRatio: "1/1", borderRadius: 18, cursor: "pointer", background: "linear-gradient(#7a5234,#5a3a23)", border: `3px solid ${isSelected ? "#5fa83f" : isReady ? "#e0a92e" : "#4d3019"}`, boxShadow: "inset 0 -6px 14px rgba(0,0,0,.32),inset 0 6px 10px rgba(255,255,255,.08),0 4px 10px -4px rgba(0,0,0,.4)", overflow: "hidden", transition: "transform .15s ease" }}>
-                  <div style={{ position: "absolute", inset: 0, backgroundImage: "repeating-linear-gradient(95deg,rgba(0,0,0,.14) 0 2px,transparent 2px 16px)", opacity: 0.5 }} />
+                  style={{ position: "relative", aspectRatio: "1/1", borderRadius: 18, cursor: "pointer", background: "radial-gradient(ellipse at 40% 35%,#8c6030 0%,#6b4620 40%,#4e2e0e 80%,#3a2008 100%)", border: `3px solid ${isSelected ? "#5fa83f" : isReady ? "#e0a92e" : "#2a1606"}`, boxShadow: `inset 0 -8px 18px rgba(0,0,0,.45),inset 0 4px 8px rgba(255,255,255,.06),0 6px 16px -6px rgba(0,0,0,.5),${isReady ? "0 0 0 2px #e0a92e" : ""}`, overflow: "hidden", transition: "transform .15s ease,box-shadow .15s ease" }}>
+                  {/* Soil rows / furrow texture */}
+                  <div style={{ position: "absolute", inset: 0, backgroundImage: "repeating-linear-gradient(180deg,rgba(0,0,0,.18) 0 3px,transparent 3px 20px),repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0 1px,transparent 1px 18px)", opacity: 0.7 }} />
+                  {/* Moist soil tint when watered */}
                   {watered[i] && !isEmpty && (
                     <>
                       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,transparent,rgba(20,40,80,.28))", pointerEvents: "none" }} />
@@ -370,6 +383,7 @@ export default function FarmView({ demo = false, onConnectRequest }: { demo?: bo
                 </div>
               );
             })}
+          </div>
           </div>
         </div>
 
