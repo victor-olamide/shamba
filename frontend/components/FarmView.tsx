@@ -23,14 +23,13 @@ const DEMO_GROW_SEC = 25; // demo crops mature in 25 s so users see the full loo
 type DemoPlot = { cropType: number; watered: boolean; plantedAt: number }; // plantedAt=0 → empty
 
 function initDemoPlots(): DemoPlot[] {
-  const n = Date.now();
   return [
-    { cropType: 0, watered: false, plantedAt: n - 40000 }, // maize  — ready
-    { cropType: 1, watered: true,  plantedAt: n - 40000 }, // tomato — ready + watered
-    { cropType: 2, watered: false, plantedAt: n - 12000 }, // cassava — growing ~48%
-    { cropType: 0, watered: false, plantedAt: 0 },          // empty
-    { cropType: 3, watered: true,  plantedAt: n - 8000 },  // sunflower — growing watered
-    { cropType: 0, watered: false, plantedAt: 0 },          // empty
+    { cropType: 0, watered: false, plantedAt: 0 },
+    { cropType: 0, watered: false, plantedAt: 0 },
+    { cropType: 0, watered: false, plantedAt: 0 },
+    { cropType: 0, watered: false, plantedAt: 0 },
+    { cropType: 0, watered: false, plantedAt: 0 },
+    { cropType: 0, watered: false, plantedAt: 0 },
   ];
 }
 
@@ -39,15 +38,15 @@ export default function FarmView({ demo = false, onConnectRequest }: { demo?: bo
   const [selected, setSelected]   = useState<number | null>(null);
   const [cropChoice, setCropChoice] = useState(0);
   const [floats, setFloats]       = useState<Record<number, string>>({});
-  const [activity, setActivity]   = useState<ActivityItem[]>([{ key: 0, icon: "🌾", bg: "#fbf0d4", text: demo ? "Demo farm — play around!" : "Welcome to your Shamba!" }]);
+  const [activity, setActivity]   = useState<ActivityItem[]>([{ key: 0, icon: "🌾", bg: "#fbf0d4", text: "Welcome to your Shamba!" }]);
   const actKey = useRef(1);
   const [, setTick] = useState(0);
   const chainAnchor = useRef({ ts: 0, at: 0 });
 
   // Demo-only local state
   const [demoPlots, setDemoPlots] = useState<DemoPlot[]>(initDemoPlots);
-  const [demoScore, setDemoScore] = useState(120);
-  const [demoHarvests, setDemoHarvests] = useState(3);
+  const [demoScore, setDemoScore] = useState(0);
+  const [demoHarvests, setDemoHarvests] = useState(0);
 
   // Anchor timers to chain time — machine clock can drift from blockchain time
   const { data: latestBlock } = useBlock({ watch: true });

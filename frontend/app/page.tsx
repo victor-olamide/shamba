@@ -154,19 +154,12 @@ export default function Home() {
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-              <div style={{ background: "#fdf3d4", border: "1px solid #e8d18a", padding: "5px 11px", borderRadius: 11, fontSize: 12, fontWeight: 700, color: "#9a6a14" }}>Demo mode</div>
               <button onClick={() => connectors[0] && connect({ connector: connectors[0] })}
                 style={{ fontFamily: "'Baloo 2',cursive", fontWeight: 800, fontSize: 13, padding: "6px 16px", borderRadius: 10, border: "none", background: "linear-gradient(180deg,#5fa83f,#357f2f)", color: "#fff", cursor: "pointer" }}>
-                Connect to save
+                👛 Connect Wallet
               </button>
             </div>
           </div>
-        </div>
-
-        {/* Demo banner */}
-        <div style={{ background: "linear-gradient(90deg,rgba(154,106,20,.1),rgba(154,106,20,.05))", borderBottom: "1px solid rgba(154,106,20,.2)", padding: "8px clamp(14px,3vw,26px)", fontSize: 12, fontWeight: 600, color: "#9a6a14", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-          <span>Farm actions work in demo — nothing is saved on-chain. Connect a wallet to keep your progress and appear on the leaderboard.</span>
-          <button onClick={() => setGuestMode(false)} style={{ background: "none", border: "none", fontSize: 11, fontWeight: 700, color: "#a08a6e", cursor: "pointer" }}>← Back to landing</button>
         </div>
 
         <div className="has-mobile-nav" style={{ maxWidth: 1180, margin: "0 auto", padding: "18px clamp(14px,3vw,26px) 60px" }}>
